@@ -1,0 +1,29 @@
+import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+
+export async function GET() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const params = new URLSearchParams({
+    client_id: process.env.META_APP_ID!,
+    redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/meta/callback`,
+    scope: [
+      "pages_show_list",
+      "pages_read_engagement",
+      "pages_manage_posts",
+      "instagram_basic",
+      "instagram_content_publish",
+      "instagram_manage_insights",
+      "business_management",
+    ].join(","),
+    response_type: "code",
+    state: session.user.id,
+  });
+
+  return NextResponse.redirect(
+    `https://www.facebook.com/v19.0/dialog/oauth?${params.toString()}`
+  );
+}

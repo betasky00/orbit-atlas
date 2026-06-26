@@ -1,0 +1,189 @@
+"use client";
+
+import { useState } from "react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+const mockPosts: Record<number, { platform: string; caption: string; status: string }[]> = {
+  26: [
+    { platform: "instagram", caption: "Transform your outdoor space 🌿", status: "scheduled" },
+  ],
+  27: [
+    { platform: "facebook", caption: "Spring collection now available", status: "scheduled" },
+  ],
+  28: [
+    { platform: "instagram", caption: "Before & after: Versailles terrace", status: "draft" },
+    { platform: "instagram", caption: "Team spotlight: Our head designer", status: "scheduled" },
+  ],
+  30: [
+    { platform: "facebook", caption: "Client testimonial — Neuilly-sur-Seine", status: "scheduled" },
+  ],
+};
+
+function PlatformDot({ platform }: { platform: string }) {
+  const colors: Record<string, string> = {
+    instagram: "#E1306C",
+    facebook: "#1877F2",
+    tiktok: "#010101",
+  };
+  return (
+    <span
+      className="inline-block w-1.5 h-1.5 rounded-full"
+      style={{ backgroundColor: colors[platform] ?? "#888" }}
+    />
+  );
+}
+
+export default function CalendarPage() {
+  const today = new Date();
+  const [year, setYear] = useState(today.getFullYear());
+  const [month, setMonth] = useState(today.getMonth());
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const prev = () => {
+    if (month === 0) { setMonth(11); setYear((y) => y - 1); }
+    else setMonth((m) => m - 1);
+  };
+  const next = () => {
+    if (month === 11) { setMonth(0); setYear((y) => y + 1); }
+    else setMonth((m) => m + 1);
+  };
+
+  const cells = Array.from({ length: firstDay + daysInMonth }, (_, i) =>
+    i < firstDay ? null : i - firstDay + 1
+  );
+
+  // Pad to full weeks
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  return (
+    <div className="p-8 max-w-5xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-white">Content Calendar</h1>
+          <p className="text-gray-400 text-sm mt-0.5">Plan and visualize your posting schedule</p>
+        </div>
+        <Link
+          href="/compose"
+          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          New Post
+        </Link>
+      </div>
+
+      <div className="bg-[#111] border border-[#1f1f1f] rounded-xl overflow-hidden">
+        {/* Month nav */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1f1f1f]">
+          <button onClick={prev} className="text-gray-400 hover:text-white transition-colors">
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <h2 className="text-white font-semibold">
+            {MONTHS[month]} {year}
+          </h2>
+          <button onClick={next} className="text-gray-400 hover:text-white transition-colors">
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Day headers */}
+        <div className="grid grid-cols-7 border-b border-[#1f1f1f]">
+          {DAYS.map((d) => (
+            <div key={d} className="py-2 text-center text-xs font-medium text-gray-500">
+              {d}
+            </div>
+          ))}
+        </div>
+
+        {/* Calendar grid */}
+        <div className="grid grid-cols-7">
+          {cells.map((day, i) => {
+            const isToday =
+              day === today.getDate() &&
+              month === today.getMonth() &&
+              year === today.getFullYear();
+            const posts = day ? (mockPosts[day] ?? []) : [];
+
+            return (
+              <div
+                key={i}
+                className={cn(
+                  "min-h-24 border-b border-r border-[#1a1a1a] p-2",
+                  !day && "bg-[#0d0d0d]",
+                  day && "hover:bg-[#151515] cursor-pointer transition-colors"
+                )}
+              >
+                {day && (
+                  <>
+                    <div className="flex items-center justify-between mb-1">
+                      <span
+                        className={cn(
+                          "text-xs w-5 h-5 flex items-center justify-center rounded-full",
+                          isToday
+                            ? "bg-violet-600 text-white font-semibold"
+                            : "text-gray-400"
+                        )}
+                      >
+                        {day}
+                      </span>
+                      {posts.length > 0 && (
+                        <span className="text-xs text-gray-500">{posts.length}</span>
+                      )}
+                    </div>
+                    <div className="space-y-0.5">
+                      {posts.slice(0, 3).map((post, j) => (
+                        <div
+                          key={j}
+                          className={cn(
+                            "text-xs px-1.5 py-0.5 rounded flex items-center gap-1 truncate",
+                            post.status === "scheduled"
+                              ? "bg-violet-600/20 text-violet-300"
+                              : "bg-[#1f1f1f] text-gray-400"
+                          )}
+                        >
+                          <PlatformDot platform={post.platform} />
+                          <span className="truncate">{post.caption}</span>
+                        </div>
+                      ))}
+                      {posts.length > 3 && (
+                        <p className="text-xs text-gray-600 pl-1">+{posts.length - 3} more</p>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center gap-4 text-xs text-gray-500">
+        <span className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded bg-violet-600/50" /> Scheduled
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded bg-[#2a2a2a]" /> Draft
+        </span>
+        <span className="flex items-center gap-1.5">
+          <PlatformDot platform="instagram" /> Instagram
+        </span>
+        <span className="flex items-center gap-1.5">
+          <PlatformDot platform="facebook" /> Facebook
+        </span>
+        <span className="flex items-center gap-1.5">
+          <PlatformDot platform="tiktok" /> TikTok
+        </span>
+      </div>
+    </div>
+  );
+}
