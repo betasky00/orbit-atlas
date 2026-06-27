@@ -63,6 +63,7 @@ model Business {
   niche     String?
   logo      String?
   color     String   @default("#6366f1")
+  brandVoice String?
   userId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -70,6 +71,7 @@ model Business {
   user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   socialAccounts SocialAccount[]
   posts          Post[]
+  templates      Template[]
 }
 
 model SocialAccount {
@@ -92,22 +94,49 @@ model SocialAccount {
   @@unique([platform, accountId])
 }
 
+// A reusable visual + content blueprint for posts.
+// `layout` holds the visual zones (image/text/logo positions).
+// `rules` holds the AI content rules (tone, structure, hashtag count, etc.)
+model Template {
+  id          String   @id @default(cuid())
+  businessId  String
+  name        String
+  postType    String?  // "news" | "product" | "testimonial" | "quote" | "announcement"
+  width       Int      @default(1080)
+  height      Int      @default(1080)
+  background  String?  // hex color or background image URL
+  layout      String   @default("[]") // JSON array of zones
+  rules       String?  // JSON content rules
+  sampleImage String?  // the reference image the user uploaded
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  posts    Post[]
+}
+
 model Post {
   id           String    @id @default(cuid())
   businessId   String
+  templateId   String?
   caption      String?
   hashtags     String?
   firstComment String?
-  mediaUrls    String
+  mediaUrls    String    @default("[]")
+  renderedUrl  String?   // final composited image (from template)
+  content      String?   // JSON of the content used to fill the template
   mediaType    String    @default("image")
   status       String    @default("draft")
   scheduledAt  DateTime?
   publishedAt  DateTime?
   aiGenerated  Boolean   @default(false)
+  source       String?   // "manual" | "news" | "template"
+  sourceData   String?   // JSON: original news article / topic
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
   business Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  template Template?     @relation(fields: [templateId], references: [id], onDelete: SetNull)
   accounts PostAccount[]
 }
 

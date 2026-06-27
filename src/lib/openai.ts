@@ -1,8 +1,20 @@
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazily instantiate so the build never requires the key —
+// it's only needed at runtime when a request actually hits the API.
+let _openai: OpenAI | null = null;
+
+export function getOpenAI(): OpenAI {
+  if (!_openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error(
+        "OPENAI_API_KEY is not set. Add it to your environment variables."
+      );
+    }
+    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return _openai;
+}
 
 export interface AIPostSuggestion {
   caption: string;
@@ -20,7 +32,7 @@ export async function generatePostContent(params: {
 }): Promise<AIPostSuggestion> {
   const { businessName, niche, platform, mediaDescription, tone = "engaging" } = params;
 
-  const completion = await openai.chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
     model: "gpt-4o",
     messages: [
       {
@@ -61,7 +73,7 @@ export async function generateBio(params: {
 }): Promise<{ bio: string; alternatives: string[] }> {
   const { businessName, niche, platform, keyPoints } = params;
 
-  const completion = await openai.chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
     model: "gpt-4o",
     messages: [
       {
@@ -98,7 +110,7 @@ export async function getBestPostingTimes(params: {
 }): Promise<{ times: Array<{ day: string; time: string; reason: string }> }> {
   const { niche, platform, timezone = "Europe/Paris" } = params;
 
-  const completion = await openai.chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
     model: "gpt-4o",
     messages: [
       {
@@ -128,4 +140,3 @@ Respond with JSON:
   return JSON.parse(content);
 }
 
-export default openai;
