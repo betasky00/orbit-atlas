@@ -13,6 +13,8 @@ import {
   Sparkles,
   ChevronDown,
   Plus,
+  Newspaper,
+  LayoutTemplate,
 } from "lucide-react";
 import { InstagramIcon, FacebookIcon, TikTokIcon } from "@/components/ui/SocialIcons";
 import { cn } from "@/lib/utils";
@@ -31,6 +33,8 @@ interface SidebarProps {
 
 const nav = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+  { href: "/studio", label: "News Studio", icon: Newspaper },
+  { href: "/templates", label: "Templates", icon: LayoutTemplate },
   { href: "/compose", label: "Create Post", icon: PlusSquare },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/analytics", label: "Analytics", icon: BarChart2 },
