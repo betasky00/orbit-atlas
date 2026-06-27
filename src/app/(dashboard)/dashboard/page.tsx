@@ -42,7 +42,7 @@ const mockUpcoming = [
 function PlatformBadge({ platform }: { platform: string }) {
   if (platform === "instagram") {
     return (
-      <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-pink-500/10 text-pink-400">
+      <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-[#1c1a17]/[0.06] text-[#1c1a17]">
         <InstagramIcon className="w-3 h-3" />
         Instagram
       </span>
@@ -50,14 +50,14 @@ function PlatformBadge({ platform }: { platform: string }) {
   }
   if (platform === "facebook") {
     return (
-      <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400">
+      <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-[#1c1a17]/[0.06] text-[#1c1a17]">
         <FacebookIcon className="w-3 h-3" />
         Facebook
       </span>
     );
   }
   return (
-    <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-gray-500/10 text-gray-400">
+    <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-[#1c1a17]/[0.06] text-[#6b655b]">
       TikTok
     </span>
   );
@@ -69,14 +69,14 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-white">Good morning 👋</h1>
-          <p className="text-gray-400 text-sm mt-0.5">
+          <h1 className="text-2xl font-semibold text-[#1c1a17]">Good morning 👋</h1>
+          <p className="text-[#6b655b] text-sm mt-0.5">
             Thursday, June 26 · 3 posts scheduled this week
           </p>
         </div>
         <Link
           href="/compose"
-          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          className="flex items-center gap-2 bg-[#1c1a17] hover:bg-[#000000] text-[#f7f3ec] px-4 py-2 rounded-lg text-sm font-medium transition-colors"
         >
           <Sparkles className="w-4 h-4" />
           Create Post
@@ -88,42 +88,42 @@ export default function DashboardPage() {
         {mockStats.map((stat) => (
           <div
             key={stat.account}
-            className="bg-[#111] border border-[#1f1f1f] rounded-xl p-5 space-y-4"
+            className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-5 space-y-4"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {stat.platform === "instagram" ? (
-                  <div className="w-8 h-8 rounded-lg ig-gradient flex items-center justify-center">
-                    <InstagramIcon className="w-4 h-4 text-white" />
+                  <div className="w-8 h-8 rounded-md bg-[#efeae1] border border-[#dbd4c7] flex items-center justify-center">
+                    <InstagramIcon className="w-4 h-4" style={{ color: "#1c1a17" }} />
                   </div>
                 ) : (
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: stat.color }}>
-                    <FacebookIcon className="w-4 h-4 text-white" />
+                  <div className="w-8 h-8 rounded-md bg-[#efeae1] border border-[#dbd4c7] flex items-center justify-center">
+                    <FacebookIcon className="w-4 h-4" style={{ color: "#1c1a17" }} />
                   </div>
                 )}
                 <div>
-                  <p className="text-sm font-medium text-white">{stat.account}</p>
-                  <p className="text-xs text-gray-500 capitalize">{stat.platform}</p>
+                  <p className="text-sm font-medium text-[#1c1a17]">{stat.account}</p>
+                  <p className="text-xs text-[#857f74] capitalize">{stat.platform}</p>
                 </div>
               </div>
-              <span className="text-xs text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+              <span className="text-xs text-emerald-700 bg-emerald-700/10 px-2 py-0.5 rounded-full flex items-center gap-1">
                 <TrendingUp className="w-3 h-3" />
                 {stat.change}
               </span>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
-              <div className="bg-[#0d0d0d] rounded-lg p-3">
-                <p className="text-xs text-gray-500">Followers</p>
-                <p className="text-lg font-semibold text-white mt-0.5">{stat.followers}</p>
+              <div className="bg-[#efeae1] rounded-lg p-3">
+                <p className="text-xs text-[#857f74]">Followers</p>
+                <p className="text-lg font-semibold text-[#1c1a17] mt-0.5">{stat.followers}</p>
               </div>
-              <div className="bg-[#0d0d0d] rounded-lg p-3">
-                <p className="text-xs text-gray-500">Published</p>
-                <p className="text-lg font-semibold text-white mt-0.5">{stat.posts}</p>
+              <div className="bg-[#efeae1] rounded-lg p-3">
+                <p className="text-xs text-[#857f74]">Published</p>
+                <p className="text-lg font-semibold text-[#1c1a17] mt-0.5">{stat.posts}</p>
               </div>
-              <div className="bg-[#0d0d0d] rounded-lg p-3">
-                <p className="text-xs text-gray-500">Scheduled</p>
-                <p className="text-lg font-semibold text-violet-400 mt-0.5">{stat.scheduled}</p>
+              <div className="bg-[#efeae1] rounded-lg p-3">
+                <p className="text-xs text-[#857f74]">Scheduled</p>
+                <p className="text-lg font-semibold text-[#1c1a17] mt-0.5">{stat.scheduled}</p>
               </div>
             </div>
           </div>
@@ -131,28 +131,28 @@ export default function DashboardPage() {
       </div>
 
       {/* Upcoming posts */}
-      <div className="bg-[#111] border border-[#1f1f1f] rounded-xl">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#1f1f1f]">
-          <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-            <Clock className="w-4 h-4 text-violet-400" />
+      <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#dbd4c7]">
+          <h2 className="text-sm font-semibold text-[#1c1a17] flex items-center gap-2">
+            <Clock className="w-4 h-4 text-[#1c1a17]" />
             Upcoming Posts
           </h2>
-          <Link href="/calendar" className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-1">
+          <Link href="/calendar" className="text-xs text-[#1c1a17] hover:text-[#46413a] flex items-center gap-1">
             View calendar <ArrowUpRight className="w-3 h-3" />
           </Link>
         </div>
 
-        <div className="divide-y divide-[#1f1f1f]">
+        <div className="divide-y divide-[#dbd4c7]">
           {mockUpcoming.map((post) => (
             <div key={post.id} className="flex items-center gap-4 px-5 py-3.5">
               <PlatformBadge platform={post.platform} />
-              <p className="text-sm text-gray-300 flex-1 truncate">{post.caption}</p>
+              <p className="text-sm text-[#3c372f] flex-1 truncate">{post.caption}</p>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <span className="text-xs text-gray-500">{post.scheduledAt}</span>
+                <span className="text-xs text-[#857f74]">{post.scheduledAt}</span>
                 {post.status === "scheduled" ? (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                 ) : (
-                  <FileText className="w-4 h-4 text-gray-500" />
+                  <FileText className="w-4 h-4 text-[#857f74]" />
                 )}
               </div>
             </div>
@@ -161,19 +161,19 @@ export default function DashboardPage() {
       </div>
 
       {/* AI suggestion banner */}
-      <div className="bg-violet-600/10 border border-violet-600/20 rounded-xl p-5 flex items-center gap-4">
-        <div className="w-9 h-9 rounded-lg bg-violet-600/20 flex items-center justify-center flex-shrink-0">
-          <Sparkles className="w-5 h-5 text-violet-400" />
+      <div className="bg-[#1c1a17]/10 border border-[#1c1a17]/20 rounded-xl p-5 flex items-center gap-4">
+        <div className="w-9 h-9 rounded-lg bg-[#1c1a17]/20 flex items-center justify-center flex-shrink-0">
+          <Sparkles className="w-5 h-5 text-[#1c1a17]" />
         </div>
         <div className="flex-1">
-          <p className="text-sm font-medium text-white">Best time to post today</p>
-          <p className="text-xs text-gray-400 mt-0.5">
-            Based on your audience, post at <span className="text-violet-400 font-medium">6:00 PM – 8:00 PM</span> for maximum reach
+          <p className="text-sm font-medium text-[#1c1a17]">Best time to post today</p>
+          <p className="text-xs text-[#6b655b] mt-0.5">
+            Based on your audience, post at <span className="text-[#1c1a17] font-medium">6:00 PM – 8:00 PM</span> for maximum reach
           </p>
         </div>
         <Link
           href="/compose"
-          className="text-xs text-violet-400 bg-violet-600/20 hover:bg-violet-600/30 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+          className="text-xs text-[#1c1a17] bg-[#1c1a17]/20 hover:bg-[#1c1a17]/30 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
         >
           Create now
         </Link>

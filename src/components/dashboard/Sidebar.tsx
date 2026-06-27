@@ -15,6 +15,7 @@ import {
   Plus,
   Newspaper,
   LayoutTemplate,
+  Film,
 } from "lucide-react";
 import { InstagramIcon, FacebookIcon, TikTokIcon } from "@/components/ui/SocialIcons";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ interface SidebarProps {
 const nav = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
   { href: "/studio", label: "News Studio", icon: Newspaper },
+  { href: "/reels", label: "Reel Remix", icon: Film },
   { href: "/templates", label: "Templates", icon: LayoutTemplate },
   { href: "/compose", label: "Create Post", icon: PlusSquare },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
@@ -48,7 +50,7 @@ function PlatformIcon({ platform }: { platform: string }) {
     return <InstagramIcon className="w-3 h-3" style={{ color: "#E1306C" }} />;
   if (platform === "facebook")
     return <FacebookIcon className="w-3 h-3" style={{ color: "#1877F2" }} />;
-  return <TikTokIcon className="w-3 h-3 fill-white" />;
+  return <TikTokIcon className="w-3 h-3 fill-[#1c1a17]" />;
 }
 
 export function Sidebar({ businesses, currentBusinessId }: SidebarProps) {
@@ -58,22 +60,22 @@ export function Sidebar({ businesses, currentBusinessId }: SidebarProps) {
   const currentBusiness = businesses.find((b) => b.id === currentBusinessId) ?? businesses[0];
 
   return (
-    <aside className="w-60 flex-shrink-0 flex flex-col h-screen bg-[#0d0d0d] border-r border-[#1f1f1f] sticky top-0">
+    <aside className="w-60 flex-shrink-0 flex flex-col h-screen bg-[#efeae1] border-r border-[#dbd4c7] sticky top-0">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-[#1f1f1f]">
+      <div className="px-5 py-5 border-b border-[#dbd4c7]">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-white" />
+          <div className="w-7 h-7 rounded-md bg-[#1c1a17] flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-[#f7f3ec]" />
           </div>
-          <span className="font-semibold text-white text-sm tracking-tight">Orbit</span>
+          <span className="font-semibold text-[#1c1a17] text-[15px] tracking-tight">Orbit</span>
         </div>
       </div>
 
       {/* Business Switcher */}
-      <div className="px-3 py-3 border-b border-[#1f1f1f]">
+      <div className="px-3 py-3 border-b border-[#dbd4c7]">
         <button
           onClick={() => setBusinessOpen(!businessOpen)}
-          className="w-full flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-[#1a1a1a] transition-colors text-left"
+          className="w-full flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-[#e3ddd0] transition-colors text-left"
         >
           {currentBusiness && (
             <div
@@ -81,11 +83,11 @@ export function Sidebar({ businesses, currentBusinessId }: SidebarProps) {
               style={{ backgroundColor: currentBusiness.color }}
             />
           )}
-          <span className="text-sm text-white flex-1 truncate font-medium">
+          <span className="text-sm text-[#1c1a17] flex-1 truncate font-medium">
             {currentBusiness?.name ?? "Select Business"}
           </span>
           <ChevronDown
-            className={cn("w-3.5 h-3.5 text-gray-500 transition-transform", businessOpen && "rotate-180")}
+            className={cn("w-3.5 h-3.5 text-[#857f74] transition-transform", businessOpen && "rotate-180")}
           />
         </button>
 
@@ -98,8 +100,8 @@ export function Sidebar({ businesses, currentBusinessId }: SidebarProps) {
                 className={cn(
                   "flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-colors",
                   b.id === currentBusiness?.id
-                    ? "bg-[#1f1f1f] text-white"
-                    : "text-gray-400 hover:text-white hover:bg-[#1a1a1a]"
+                    ? "bg-[#dbd4c7] text-[#1c1a17]"
+                    : "text-[#6b655b] hover:text-[#1c1a17] hover:bg-[#e3ddd0]"
                 )}
               >
                 <div
@@ -116,7 +118,7 @@ export function Sidebar({ businesses, currentBusinessId }: SidebarProps) {
             ))}
             <Link
               href="/settings/businesses/new"
-              className="flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-gray-500 hover:text-white hover:bg-[#1a1a1a] transition-colors"
+              className="flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-[#857f74] hover:text-[#1c1a17] hover:bg-[#e3ddd0] transition-colors"
             >
               <Plus className="w-3 h-3" />
               Add business
@@ -134,8 +136,8 @@ export function Sidebar({ businesses, currentBusinessId }: SidebarProps) {
             className={cn(
               "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
               pathname === href || pathname.startsWith(href + "/")
-                ? "bg-violet-600/20 text-violet-400 font-medium"
-                : "text-gray-400 hover:text-white hover:bg-[#1a1a1a]"
+                ? "bg-[#1c1a17]/20 text-[#1c1a17] font-medium"
+                : "text-[#6b655b] hover:text-[#1c1a17] hover:bg-[#e3ddd0]"
             )}
           >
             <Icon className="w-4 h-4 flex-shrink-0" />
@@ -145,12 +147,12 @@ export function Sidebar({ businesses, currentBusinessId }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="px-3 py-3 border-t border-[#1f1f1f]">
-        <div className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-[#1a1a1a] cursor-pointer transition-colors">
-          <div className="w-6 h-6 rounded-full bg-violet-600 flex items-center justify-center text-xs text-white font-medium">
+      <div className="px-3 py-3 border-t border-[#dbd4c7]">
+        <div className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-[#e3ddd0] cursor-pointer transition-colors">
+          <div className="w-6 h-6 rounded-full bg-[#1c1a17] flex items-center justify-center text-xs text-[#f7f3ec] font-medium">
             O
           </div>
-          <span className="text-xs text-gray-400 flex-1">My Account</span>
+          <span className="text-xs text-[#6b655b] flex-1">My Account</span>
         </div>
       </div>
     </aside>

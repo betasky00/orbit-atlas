@@ -189,10 +189,10 @@ export default function StudioPage() {
   return (
     <div className="p-8 max-w-6xl mx-auto">
       <div className="mb-6 flex items-center gap-2">
-        <Newspaper className="w-5 h-5 text-violet-400" />
+        <Newspaper className="w-5 h-5 text-[#1c1a17]" />
         <div>
-          <h1 className="text-2xl font-semibold text-white">News Studio</h1>
-          <p className="text-gray-400 text-sm mt-0.5">
+          <h1 className="text-2xl font-semibold text-[#1c1a17]">News Studio</h1>
+          <p className="text-[#6b655b] text-sm mt-0.5">
             Paste a news item → AI writes the post, generates the image, drops it into your template. Post instantly.
           </p>
         </div>
@@ -202,22 +202,22 @@ export default function StudioPage() {
         {/* LEFT — controls */}
         <div className="space-y-4">
           {/* Template picker */}
-          <div className="bg-[#111] border border-[#1f1f1f] rounded-xl p-4">
-            <p className="text-xs text-gray-400 font-medium mb-2">Template</p>
+          <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-4">
+            <p className="text-xs text-[#6b655b] font-medium mb-2">Template</p>
             <select
               value={templateId}
               onChange={(e) => setTemplateId(e.target.value)}
-              className="w-full bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-violet-600/50"
+              className="w-full bg-[#efeae1] border border-[#d4ccbd] rounded-lg px-3 py-2 text-sm text-[#1c1a17] outline-none focus:border-[#1c1a17]/50"
             >
               {templates.map((t) => (
-                <option key={t.id} value={t.id} className="bg-[#111]">
+                <option key={t.id} value={t.id} className="bg-[#f4f1ea]">
                   {t.name}
                   {t.preset ? " (preset)" : ""}
                 </option>
               ))}
             </select>
             {template?.rules?.tone && (
-              <p className="text-xs text-gray-600 mt-2">
+              <p className="text-xs text-[#a39c8d] mt-2">
                 Rules: {template.rules.tone} · headline ≤{" "}
                 {template.rules.headlineMaxWords ?? 12} words ·{" "}
                 {template.rules.hashtagCount ?? 8} hashtags
@@ -226,26 +226,26 @@ export default function StudioPage() {
           </div>
 
           {/* Business context */}
-          <div className="bg-[#111] border border-[#1f1f1f] rounded-xl p-4 grid grid-cols-2 gap-3">
+          <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-4 grid grid-cols-2 gap-3">
             <input
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
               placeholder="Business name"
-              className="bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 outline-none focus:border-violet-600/50"
+              className="bg-[#efeae1] border border-[#d4ccbd] rounded-lg px-3 py-2 text-sm text-[#1c1a17] placeholder-[#a39c8d] outline-none focus:border-[#1c1a17]/50"
             />
             <input
               value={niche}
               onChange={(e) => setNiche(e.target.value)}
               placeholder="Niche (e.g. tech news)"
-              className="bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 outline-none focus:border-violet-600/50"
+              className="bg-[#efeae1] border border-[#d4ccbd] rounded-lg px-3 py-2 text-sm text-[#1c1a17] placeholder-[#a39c8d] outline-none focus:border-[#1c1a17]/50"
             />
             <select
               value={platform}
               onChange={(e) => setPlatform(e.target.value)}
-              className="col-span-2 bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-violet-600/50"
+              className="col-span-2 bg-[#efeae1] border border-[#d4ccbd] rounded-lg px-3 py-2 text-sm text-[#1c1a17] outline-none focus:border-[#1c1a17]/50"
             >
               {PLATFORMS.map((p) => (
-                <option key={p} value={p} className="bg-[#111]">
+                <option key={p} value={p} className="bg-[#f4f1ea]">
                   {p[0].toUpperCase() + p.slice(1)}
                 </option>
               ))}
@@ -253,19 +253,19 @@ export default function StudioPage() {
           </div>
 
           {/* News input */}
-          <div className="bg-[#111] border border-[#1f1f1f] rounded-xl p-4">
-            <p className="text-xs text-gray-400 font-medium mb-2">News item or topic</p>
+          <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-4">
+            <p className="text-xs text-[#6b655b] font-medium mb-2">News item or topic</p>
             <textarea
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               placeholder="Paste a headline or article, or describe what happened…"
               rows={4}
-              className="w-full bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 resize-none outline-none focus:border-violet-600/50"
+              className="w-full bg-[#efeae1] border border-[#d4ccbd] rounded-lg px-3 py-2 text-sm text-[#1c1a17] placeholder-[#a39c8d] resize-none outline-none focus:border-[#1c1a17]/50"
             />
             <button
               onClick={generateText}
               disabled={genText || !topic.trim()}
-              className="mt-3 w-full bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              className="mt-3 w-full bg-[#1c1a17] hover:bg-[#000000] disabled:opacity-50 text-[#f7f3ec] py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
             >
               {genText ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
               {genText ? "Writing post…" : "Generate post text"}
@@ -273,28 +273,28 @@ export default function StudioPage() {
           </div>
 
           {/* Image controls */}
-          <div className="bg-[#111] border border-[#1f1f1f] rounded-xl p-4 space-y-3">
-            <p className="text-xs text-gray-400 font-medium">Image</p>
+          <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-4 space-y-3">
+            <p className="text-xs text-[#6b655b] font-medium">Image</p>
             {imagePrompt && (
               <input
                 value={imagePrompt}
                 onChange={(e) => setImagePrompt(e.target.value)}
                 placeholder="Image prompt"
-                className="w-full bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg px-3 py-2 text-xs text-gray-300 outline-none focus:border-violet-600/50"
+                className="w-full bg-[#efeae1] border border-[#d4ccbd] rounded-lg px-3 py-2 text-xs text-[#3c372f] outline-none focus:border-[#1c1a17]/50"
               />
             )}
             <div className="flex gap-2">
               <button
                 onClick={generateImage}
                 disabled={genImage}
-                className="flex-1 bg-violet-600/20 hover:bg-violet-600/30 border border-violet-600/30 text-violet-300 py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                className="flex-1 bg-[#1c1a17]/20 hover:bg-[#1c1a17]/30 border border-[#1c1a17]/30 text-[#46413a] py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {genImage ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
                 {genImage ? "Generating…" : "Generate image (AI)"}
               </button>
               <button
                 onClick={() => fileRef.current?.click()}
-                className="flex-1 border border-[#2a2a2a] hover:border-[#3a3a3a] text-gray-300 py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-2"
+                className="flex-1 border border-[#d4ccbd] hover:border-[#c4bbab] text-[#3c372f] py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-2"
               >
                 <Upload className="w-3.5 h-3.5" />
                 Upload image
@@ -305,8 +305,8 @@ export default function StudioPage() {
 
           {/* Editable text fields */}
           {(content.headline || content.kicker) && (
-            <div className="bg-[#111] border border-[#1f1f1f] rounded-xl p-4 space-y-2">
-              <p className="text-xs text-gray-400 font-medium mb-1">Fine-tune text</p>
+            <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-4 space-y-2">
+              <p className="text-xs text-[#6b655b] font-medium mb-1">Fine-tune text</p>
               {["kicker", "headline", "body", "brand"].map((k) =>
                 template?.zones.some((z) => z.key === k) ? (
                   <input
@@ -314,7 +314,7 @@ export default function StudioPage() {
                     value={content[k] ?? ""}
                     onChange={(e) => setContent((c) => ({ ...c, [k]: e.target.value }))}
                     placeholder={k}
-                    className="w-full bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-600 outline-none focus:border-violet-600/50"
+                    className="w-full bg-[#efeae1] border border-[#d4ccbd] rounded-lg px-3 py-1.5 text-xs text-[#1c1a17] placeholder-[#a39c8d] outline-none focus:border-[#1c1a17]/50"
                   />
                 ) : null
               )}
@@ -324,14 +324,14 @@ export default function StudioPage() {
 
         {/* RIGHT — live preview + publish */}
         <div className="space-y-4">
-          <div className="bg-[#111] border border-[#1f1f1f] rounded-xl p-4">
+          <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-4">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs text-gray-400 font-medium">Live preview</p>
+              <p className="text-xs text-[#6b655b] font-medium">Live preview</p>
               <div className="flex gap-2">
-                <button onClick={generateImage} disabled={genImage} className="text-gray-500 hover:text-white transition-colors" title="Regenerate image">
+                <button onClick={generateImage} disabled={genImage} className="text-[#857f74] hover:text-[#1c1a17] transition-colors" title="Regenerate image">
                   <RefreshCw className="w-3.5 h-3.5" />
                 </button>
-                <button onClick={downloadPng} className="text-gray-500 hover:text-white transition-colors" title="Download PNG">
+                <button onClick={downloadPng} className="text-[#857f74] hover:text-[#1c1a17] transition-colors" title="Download PNG">
                   <Download className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -340,7 +340,7 @@ export default function StudioPage() {
               {template && (
                 <div
                   style={{ width: previewWidth, height: template.height * scale }}
-                  className="rounded-lg overflow-hidden border border-[#2a2a2a]"
+                  className="rounded-lg overflow-hidden border border-[#d4ccbd]"
                 >
                   <TemplateCanvas
                     width={template.width}
@@ -354,7 +354,7 @@ export default function StudioPage() {
               )}
             </div>
             {!content.image && !content.headline && (
-              <p className="text-center text-xs text-gray-600 mt-3">
+              <p className="text-center text-xs text-[#a39c8d] mt-3">
                 Generate text and an image to see your post come together
               </p>
             )}
@@ -362,20 +362,20 @@ export default function StudioPage() {
 
           {/* Caption + publish */}
           {caption && (
-            <div className="bg-[#111] border border-[#1f1f1f] rounded-xl p-4 space-y-3">
+            <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-4 space-y-3">
               <div>
-                <p className="text-xs text-gray-400 font-medium mb-1.5">Caption</p>
+                <p className="text-xs text-[#6b655b] font-medium mb-1.5">Caption</p>
                 <textarea
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
                   rows={3}
-                  className="w-full bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg px-3 py-2 text-xs text-white resize-none outline-none focus:border-violet-600/50"
+                  className="w-full bg-[#efeae1] border border-[#d4ccbd] rounded-lg px-3 py-2 text-xs text-[#1c1a17] resize-none outline-none focus:border-[#1c1a17]/50"
                 />
               </div>
               {hashtags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {hashtags.map((t, i) => (
-                    <span key={i} className="text-xs px-2 py-0.5 bg-violet-600/20 text-violet-300 rounded-full">
+                    <span key={i} className="text-xs px-2 py-0.5 bg-[#1c1a17]/20 text-[#46413a] rounded-full">
                       #{t}
                     </span>
                   ))}
@@ -388,7 +388,7 @@ export default function StudioPage() {
             <button
               onClick={() => publish("now")}
               disabled={publishing || !content.image}
-              className="flex-1 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              className="flex-1 bg-[#1c1a17] hover:bg-[#000000] disabled:opacity-50 text-[#f7f3ec] py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
             >
               {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               Post now
@@ -396,7 +396,7 @@ export default function StudioPage() {
             <button
               onClick={() => publish("schedule")}
               disabled={publishing || !content.image}
-              className="flex-1 border border-[#2a2a2a] hover:border-[#3a3a3a] disabled:opacity-50 text-white py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              className="flex-1 border border-[#d4ccbd] hover:border-[#c4bbab] disabled:opacity-50 text-[#1c1a17] py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
             >
               <Clock className="w-4 h-4" />
               Schedule
@@ -404,7 +404,7 @@ export default function StudioPage() {
           </div>
 
           {status && (
-            <div className="bg-[#0d0d0d] border border-[#1f1f1f] rounded-lg px-4 py-2.5 text-xs text-gray-300">
+            <div className="bg-[#efeae1] border border-[#dbd4c7] rounded-lg px-4 py-2.5 text-xs text-[#3c372f]">
               {status}
             </div>
           )}

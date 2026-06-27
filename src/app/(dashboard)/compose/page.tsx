@@ -92,16 +92,16 @@ export default function ComposePage() {
   return (
     <div className="p-8 max-w-6xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-white">Create Post</h1>
-        <p className="text-gray-400 text-sm mt-0.5">Compose and schedule content for your accounts</p>
+        <h1 className="text-2xl font-semibold text-[#1c1a17]">Create Post</h1>
+        <p className="text-[#6b655b] text-sm mt-0.5">Compose and schedule content for your accounts</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left — Composer */}
         <div className="lg:col-span-2 space-y-4">
           {/* Platform selector */}
-          <div className="bg-[#111] border border-[#1f1f1f] rounded-xl p-4">
-            <p className="text-xs text-gray-400 font-medium mb-3">Post to</p>
+          <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-4">
+            <p className="text-xs text-[#6b655b] font-medium mb-3">Post to</p>
             <div className="flex gap-2 flex-wrap">
               {PLATFORMS.map(({ id, label, icon: Icon, color }) => (
                 <button
@@ -110,8 +110,8 @@ export default function ComposePage() {
                   className={cn(
                     "flex items-center gap-2 px-3 py-2 rounded-lg text-sm border transition-all",
                     selectedPlatforms.includes(id)
-                      ? "text-white border-transparent"
-                      : "text-gray-400 border-[#2a2a2a] hover:border-[#3a3a3a]"
+                      ? "text-[#1c1a17] border-transparent"
+                      : "text-[#6b655b] border-[#d4ccbd] hover:border-[#c4bbab]"
                   )}
                   style={
                     selectedPlatforms.includes(id)
@@ -130,16 +130,16 @@ export default function ComposePage() {
           </div>
 
           {/* Media upload */}
-          <div className="bg-[#111] border border-[#1f1f1f] rounded-xl p-4">
-            <p className="text-xs text-gray-400 font-medium mb-3">Media</p>
+          <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-4">
+            <p className="text-xs text-[#6b655b] font-medium mb-3">Media</p>
             {mediaFiles.length === 0 ? (
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full h-40 border-2 border-dashed border-[#2a2a2a] rounded-lg flex flex-col items-center justify-center gap-2 hover:border-violet-600/50 hover:bg-violet-600/5 transition-colors text-gray-500 hover:text-gray-300"
+                className="w-full h-40 border-2 border-dashed border-[#d4ccbd] rounded-lg flex flex-col items-center justify-center gap-2 hover:border-[#1c1a17]/50 hover:bg-[#1c1a17]/5 transition-colors text-[#857f74] hover:text-[#3c372f]"
               >
                 <Upload className="w-6 h-6" />
                 <span className="text-sm">Click to upload photos or videos</span>
-                <span className="text-xs text-gray-600">PNG, JPG, MP4 · Max 100MB</span>
+                <span className="text-xs text-[#a39c8d]">PNG, JPG, MP4 · Max 100MB</span>
               </button>
             ) : (
               <div className="space-y-3">
@@ -155,15 +155,15 @@ export default function ComposePage() {
                         onClick={() => removeMedia(i)}
                         className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        <X className="w-3 h-3 text-white" />
+                        <X className="w-3 h-3 text-[#1c1a17]" />
                       </button>
                     </div>
                   ))}
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-20 h-20 border-2 border-dashed border-[#2a2a2a] rounded-lg flex items-center justify-center hover:border-violet-600/50 transition-colors"
+                    className="w-20 h-20 border-2 border-dashed border-[#d4ccbd] rounded-lg flex items-center justify-center hover:border-[#1c1a17]/50 transition-colors"
                   >
-                    <Image className="w-5 h-5 text-gray-500" />
+                    <Image className="w-5 h-5 text-[#857f74]" />
                   </button>
                 </div>
               </div>
@@ -179,10 +179,10 @@ export default function ComposePage() {
           </div>
 
           {/* Caption */}
-          <div className="bg-[#111] border border-[#1f1f1f] rounded-xl p-4">
+          <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-4">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs text-gray-400 font-medium">Caption</p>
-              <span className={cn("text-xs", charCount > 2000 ? "text-red-400" : "text-gray-500")}>
+              <p className="text-xs text-[#6b655b] font-medium">Caption</p>
+              <span className={cn("text-xs", charCount > 2000 ? "text-red-600" : "text-[#857f74]")}>
                 {charCount} / 2200
               </span>
             </div>
@@ -191,23 +191,23 @@ export default function ComposePage() {
               onChange={(e) => setCaption(e.target.value)}
               placeholder="Write your caption…"
               rows={5}
-              className="w-full bg-transparent text-sm text-white placeholder-gray-600 resize-none outline-none leading-relaxed"
+              className="w-full bg-transparent text-sm text-[#1c1a17] placeholder-[#a39c8d] resize-none outline-none leading-relaxed"
             />
           </div>
 
           {/* Hashtags */}
-          <div className="bg-[#111] border border-[#1f1f1f] rounded-xl p-4">
+          <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Hash className="w-3.5 h-3.5 text-violet-400" />
-              <p className="text-xs text-gray-400 font-medium">Hashtags</p>
-              <span className="text-xs text-gray-600">({hashtags.length}/30)</span>
+              <Hash className="w-3.5 h-3.5 text-[#1c1a17]" />
+              <p className="text-xs text-[#6b655b] font-medium">Hashtags</p>
+              <span className="text-xs text-[#a39c8d]">({hashtags.length}/30)</span>
             </div>
             {hashtags.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {hashtags.map((tag, i) => (
                   <span
                     key={i}
-                    className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-violet-600/20 text-violet-300"
+                    className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-[#1c1a17]/20 text-[#46413a]"
                   >
                     #{tag}
                     <button onClick={() => setHashtags((h) => h.filter((_, idx) => idx !== i))}>
@@ -219,7 +219,7 @@ export default function ComposePage() {
             )}
             <input
               placeholder="Add hashtag and press Enter…"
-              className="w-full bg-transparent text-sm text-white placeholder-gray-600 outline-none"
+              className="w-full bg-transparent text-sm text-[#1c1a17] placeholder-[#a39c8d] outline-none"
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === ",") {
                   e.preventDefault();
@@ -234,26 +234,26 @@ export default function ComposePage() {
           </div>
 
           {/* First comment */}
-          <div className="bg-[#111] border border-[#1f1f1f] rounded-xl p-4">
+          <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-4">
             <div className="flex items-center gap-2 mb-3">
-              <MessageCircle className="w-3.5 h-3.5 text-violet-400" />
-              <p className="text-xs text-gray-400 font-medium">First Comment</p>
-              <span className="text-xs text-gray-600">Boosts engagement</span>
+              <MessageCircle className="w-3.5 h-3.5 text-[#1c1a17]" />
+              <p className="text-xs text-[#6b655b] font-medium">First Comment</p>
+              <span className="text-xs text-[#a39c8d]">Boosts engagement</span>
             </div>
             <textarea
               value={firstComment}
               onChange={(e) => setFirstComment(e.target.value)}
               placeholder="Add a first comment to boost reach…"
               rows={2}
-              className="w-full bg-transparent text-sm text-white placeholder-gray-600 resize-none outline-none"
+              className="w-full bg-transparent text-sm text-[#1c1a17] placeholder-[#a39c8d] resize-none outline-none"
             />
           </div>
 
           {/* Schedule */}
-          <div className="bg-[#111] border border-[#1f1f1f] rounded-xl p-4">
+          <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Clock className="w-3.5 h-3.5 text-violet-400" />
-              <p className="text-xs text-gray-400 font-medium">Publish</p>
+              <Clock className="w-3.5 h-3.5 text-[#1c1a17]" />
+              <p className="text-xs text-[#6b655b] font-medium">Publish</p>
             </div>
             <div className="flex gap-2">
               <button
@@ -261,8 +261,8 @@ export default function ComposePage() {
                 className={cn(
                   "flex-1 py-2 rounded-lg text-sm border transition-all",
                   scheduleMode === "now"
-                    ? "bg-violet-600/20 border-violet-600/40 text-violet-300"
-                    : "border-[#2a2a2a] text-gray-400 hover:border-[#3a3a3a]"
+                    ? "bg-[#1c1a17]/20 border-[#1c1a17]/40 text-[#46413a]"
+                    : "border-[#d4ccbd] text-[#6b655b] hover:border-[#c4bbab]"
                 )}
               >
                 Post now
@@ -272,8 +272,8 @@ export default function ComposePage() {
                 className={cn(
                   "flex-1 py-2 rounded-lg text-sm border transition-all",
                   scheduleMode === "schedule"
-                    ? "bg-violet-600/20 border-violet-600/40 text-violet-300"
-                    : "border-[#2a2a2a] text-gray-400 hover:border-[#3a3a3a]"
+                    ? "bg-[#1c1a17]/20 border-[#1c1a17]/40 text-[#46413a]"
+                    : "border-[#d4ccbd] text-[#6b655b] hover:border-[#c4bbab]"
                 )}
               >
                 Schedule
@@ -284,7 +284,7 @@ export default function ComposePage() {
                 type="datetime-local"
                 value={scheduledAt}
                 onChange={(e) => setScheduledAt(e.target.value)}
-                className="mt-3 w-full bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-violet-600/50"
+                className="mt-3 w-full bg-[#efeae1] border border-[#d4ccbd] rounded-lg px-3 py-2 text-sm text-[#1c1a17] outline-none focus:border-[#1c1a17]/50"
               />
             )}
           </div>
@@ -318,7 +318,7 @@ export default function ComposePage() {
                 setPosting(false);
               }
             }}
-            className="w-full bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-[#1c1a17] hover:bg-[#000000] disabled:opacity-50 disabled:cursor-not-allowed text-[#f7f3ec] py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
           >
             {posting ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -335,16 +335,16 @@ export default function ComposePage() {
 
         {/* Right — AI Panel */}
         <div className="space-y-4">
-          <div className="bg-[#111] border border-[#1f1f1f] rounded-xl overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[#1f1f1f]">
+          <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[#dbd4c7]">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-violet-400" />
-                <span className="text-sm font-medium text-white">AI Assistant</span>
+                <Sparkles className="w-4 h-4 text-[#1c1a17]" />
+                <span className="text-sm font-medium text-[#1c1a17]">AI Assistant</span>
               </div>
               <button onClick={() => setShowAI(!showAI)}>
                 <ChevronDown
                   className={cn(
-                    "w-4 h-4 text-gray-500 transition-transform",
+                    "w-4 h-4 text-[#857f74] transition-transform",
                     showAI && "rotate-180"
                   )}
                 />
@@ -354,7 +354,7 @@ export default function ComposePage() {
             {showAI && (
               <div className="p-4 space-y-3">
                 <div>
-                  <label className="text-xs text-gray-400 block mb-1.5">
+                  <label className="text-xs text-[#6b655b] block mb-1.5">
                     Describe your post
                   </label>
                   <textarea
@@ -362,12 +362,12 @@ export default function ComposePage() {
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="e.g. A before/after photo of a luxury garden installation in Paris with water feature"
                     rows={3}
-                    className="w-full bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 resize-none outline-none focus:border-violet-600/50"
+                    className="w-full bg-[#efeae1] border border-[#d4ccbd] rounded-lg px-3 py-2 text-xs text-[#1c1a17] placeholder-[#a39c8d] resize-none outline-none focus:border-[#1c1a17]/50"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs text-gray-400 block mb-1.5">Tone</label>
+                  <label className="text-xs text-[#6b655b] block mb-1.5">Tone</label>
                   <div className="flex flex-wrap gap-1.5">
                     {TONES.map((t) => (
                       <button
@@ -376,8 +376,8 @@ export default function ComposePage() {
                         className={cn(
                           "text-xs px-2.5 py-1 rounded-full border transition-all",
                           tone === t
-                            ? "bg-violet-600/20 border-violet-600/40 text-violet-300"
-                            : "border-[#2a2a2a] text-gray-500 hover:border-[#3a3a3a]"
+                            ? "bg-[#1c1a17]/20 border-[#1c1a17]/40 text-[#46413a]"
+                            : "border-[#d4ccbd] text-[#857f74] hover:border-[#c4bbab]"
                         )}
                       >
                         {t}
@@ -389,7 +389,7 @@ export default function ComposePage() {
                 <button
                   onClick={handleAIGenerate}
                   disabled={aiLoading}
-                  className="w-full bg-violet-600/20 hover:bg-violet-600/30 border border-violet-600/30 text-violet-300 py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full bg-[#1c1a17]/20 hover:bg-[#1c1a17]/30 border border-[#1c1a17]/30 text-[#46413a] py-2 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {aiLoading ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -403,16 +403,16 @@ export default function ComposePage() {
           </div>
 
           {/* Best times panel */}
-          <div className="bg-[#111] border border-[#1f1f1f] rounded-xl p-4">
+          <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Clock className="w-4 h-4 text-violet-400" />
-              <span className="text-sm font-medium text-white">Best times today</span>
+              <Clock className="w-4 h-4 text-[#1c1a17]" />
+              <span className="text-sm font-medium text-[#1c1a17]">Best times today</span>
             </div>
             <div className="space-y-2">
               {[
-                { time: "12:00 PM", score: "High", color: "text-emerald-400" },
-                { time: "6:00 PM", score: "Peak", color: "text-violet-400" },
-                { time: "8:00 PM", score: "Good", color: "text-blue-400" },
+                { time: "12:00 PM", score: "High", color: "text-emerald-700" },
+                { time: "6:00 PM", score: "Peak", color: "text-[#1c1a17]" },
+                { time: "8:00 PM", score: "Good", color: "text-[#1c1a17]" },
               ].map(({ time, score, color }) => (
                 <button
                   key={time}
@@ -425,9 +425,9 @@ export default function ComposePage() {
                     if (period === "PM" && hour !== 12) hour += 12;
                     setScheduledAt(`${today}T${hour.toString().padStart(2, "0")}:${min}`);
                   }}
-                  className="w-full flex items-center justify-between px-3 py-2 bg-[#0d0d0d] hover:bg-[#161616] rounded-lg transition-colors text-left"
+                  className="w-full flex items-center justify-between px-3 py-2 bg-[#efeae1] hover:bg-[#e3ddd0] rounded-lg transition-colors text-left"
                 >
-                  <span className="text-sm text-white">{time}</span>
+                  <span className="text-sm text-[#1c1a17]">{time}</span>
                   <span className={cn("text-xs font-medium", color)}>{score}</span>
                 </button>
               ))}
@@ -435,11 +435,11 @@ export default function ComposePage() {
           </div>
 
           {/* Preview */}
-          <div className="bg-[#111] border border-[#1f1f1f] rounded-xl p-4">
-            <p className="text-xs text-gray-400 font-medium mb-3">Preview</p>
-            <div className="bg-[#0d0d0d] rounded-lg p-3 text-xs text-gray-300 leading-relaxed min-h-16 whitespace-pre-wrap">
+          <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-4">
+            <p className="text-xs text-[#6b655b] font-medium mb-3">Preview</p>
+            <div className="bg-[#efeae1] rounded-lg p-3 text-xs text-[#3c372f] leading-relaxed min-h-16 whitespace-pre-wrap">
               {fullCaption || (
-                <span className="text-gray-600">Caption preview will appear here…</span>
+                <span className="text-[#a39c8d]">Caption preview will appear here…</span>
               )}
             </div>
           </div>

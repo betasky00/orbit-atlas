@@ -54,7 +54,7 @@ export default function TemplatesPage() {
           postType: data.postType,
           width: data.width ?? 1080,
           height: data.height ?? 1080,
-          background: data.background ?? "#111111",
+          background: data.background ?? "#f4f1ea",
           zones: data.zones ?? [],
           rules: data.rules,
           sampleImage: dataUrl,
@@ -86,39 +86,39 @@ export default function TemplatesPage() {
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8">
       <div className="flex items-center gap-2">
-        <LayoutTemplate className="w-5 h-5 text-violet-400" />
+        <LayoutTemplate className="w-5 h-5 text-[#1c1a17]" />
         <div>
-          <h1 className="text-2xl font-semibold text-white">Templates</h1>
-          <p className="text-gray-400 text-sm mt-0.5">
+          <h1 className="text-2xl font-semibold text-[#1c1a17]">Templates</h1>
+          <p className="text-[#6b655b] text-sm mt-0.5">
             Upload an example post and AI learns its layout + rules — then reuse it forever.
           </p>
         </div>
       </div>
 
       {/* Upload / analyze */}
-      <div className="bg-[#111] border border-[#1f1f1f] rounded-xl p-5">
+      <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-5">
         <div className="flex items-center gap-3 mb-4">
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Template name (e.g. Daily News Card)"
-            className="flex-1 bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 outline-none focus:border-violet-600/50"
+            className="flex-1 bg-[#efeae1] border border-[#d4ccbd] rounded-lg px-3 py-2 text-sm text-[#1c1a17] placeholder-[#a39c8d] outline-none focus:border-[#1c1a17]/50"
           />
           <button
             onClick={() => fileRef.current?.click()}
             disabled={analyzing}
-            className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            className="flex items-center gap-2 bg-[#1c1a17] hover:bg-[#000000] disabled:opacity-50 text-[#f7f3ec] px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           >
             {analyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
             {analyzing ? "Analyzing…" : "Upload example post"}
           </button>
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onUpload} />
         </div>
-        {error && <p className="text-xs text-red-400">{error}</p>}
+        {error && <p className="text-xs text-red-600">{error}</p>}
 
         {analyzing && (
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <Sparkles className="w-4 h-4 text-violet-400 animate-pulse" />
+          <div className="flex items-center gap-2 text-sm text-[#6b655b]">
+            <Sparkles className="w-4 h-4 text-[#1c1a17] animate-pulse" />
             AI is studying the layout, zones, and content rules…
           </div>
         )}
@@ -126,11 +126,11 @@ export default function TemplatesPage() {
         {draft && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-2">
             <div>
-              <p className="text-xs text-gray-400 mb-2">Detected template</p>
-              <div className="flex justify-center bg-[#0d0d0d] rounded-lg p-4">
+              <p className="text-xs text-[#6b655b] mb-2">Detected template</p>
+              <div className="flex justify-center bg-[#efeae1] rounded-lg p-4">
                 <div
                   style={{ width: 240, height: (draft.height / draft.width) * 240 }}
-                  className="rounded-md overflow-hidden border border-[#2a2a2a]"
+                  className="rounded-md overflow-hidden border border-[#d4ccbd]"
                 >
                   <TemplateCanvas
                     width={draft.width}
@@ -145,8 +145,8 @@ export default function TemplatesPage() {
             </div>
             <div className="space-y-3">
               <div>
-                <p className="text-xs text-gray-400 mb-1">Detected rules</p>
-                <div className="bg-[#0d0d0d] rounded-lg p-3 text-xs text-gray-300 space-y-1">
+                <p className="text-xs text-[#6b655b] mb-1">Detected rules</p>
+                <div className="bg-[#efeae1] rounded-lg p-3 text-xs text-[#3c372f] space-y-1">
                   <p>Tone: {draft.rules?.tone ?? "—"}</p>
                   <p>Headline max: {draft.rules?.headlineMaxWords ?? "—"} words</p>
                   <p>Hashtags: {draft.rules?.hashtagCount ?? "—"}</p>
@@ -155,14 +155,14 @@ export default function TemplatesPage() {
               </div>
               <button
                 onClick={saveDraft}
-                className="w-full bg-violet-600 hover:bg-violet-500 text-white py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-[#1c1a17] hover:bg-[#000000] text-[#f7f3ec] py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
               >
                 <Check className="w-4 h-4" />
                 Save template
               </button>
               <button
                 onClick={() => setDraft(null)}
-                className="w-full text-gray-400 hover:text-white py-2 rounded-lg text-sm transition-colors"
+                className="w-full text-[#6b655b] hover:text-[#1c1a17] py-2 rounded-lg text-sm transition-colors"
               >
                 Discard
               </button>
@@ -173,14 +173,14 @@ export default function TemplatesPage() {
 
       {/* Template gallery */}
       <div>
-        <h2 className="text-sm font-semibold text-white mb-3">Your templates</h2>
+        <h2 className="text-sm font-semibold text-[#1c1a17] mb-3">Your templates</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {templates.map((t) => (
-            <div key={t.id} className="bg-[#111] border border-[#1f1f1f] rounded-xl overflow-hidden group">
-              <div className="bg-[#0d0d0d] p-3 flex justify-center">
+            <div key={t.id} className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl overflow-hidden group">
+              <div className="bg-[#efeae1] p-3 flex justify-center">
                 <div
                   style={{ width: 180, height: (t.height / t.width) * 180 }}
-                  className="rounded-md overflow-hidden border border-[#2a2a2a]"
+                  className="rounded-md overflow-hidden border border-[#d4ccbd]"
                 >
                   <TemplateCanvas
                     width={t.width}
@@ -194,13 +194,13 @@ export default function TemplatesPage() {
               </div>
               <div className="px-3 py-2.5 flex items-center justify-between">
                 <div className="min-w-0">
-                  <p className="text-sm text-white truncate">{t.name}</p>
-                  <p className="text-xs text-gray-500">{t.preset ? "Preset" : t.postType ?? "Custom"}</p>
+                  <p className="text-sm text-[#1c1a17] truncate">{t.name}</p>
+                  <p className="text-xs text-[#857f74]">{t.preset ? "Preset" : t.postType ?? "Custom"}</p>
                 </div>
                 {userIds.has(t.id) && (
                   <button
                     onClick={() => remove(t.id)}
-                    className="text-gray-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                    className="text-[#a39c8d] hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

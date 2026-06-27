@@ -28,30 +28,30 @@ const mockData = {
 };
 
 const stats = [
-  { label: "Total Followers", value: "20.6K", change: "+329", icon: Users, color: "text-violet-400" },
-  { label: "Total Reach", value: "67.3K", change: "+12%", icon: Eye, color: "text-blue-400" },
-  { label: "Avg. Engagement", value: "3.5%", change: "+0.4%", icon: Heart, color: "text-pink-400" },
-  { label: "Posts This Month", value: "18", change: "+3", icon: TrendingUp, color: "text-emerald-400" },
+  { label: "Total Followers", value: "20.6K", change: "+329", icon: Users, color: "text-[#1c1a17]" },
+  { label: "Total Reach", value: "67.3K", change: "+12%", icon: Eye, color: "text-[#1c1a17]" },
+  { label: "Avg. Engagement", value: "3.5%", change: "+0.4%", icon: Heart, color: "text-[#1c1a17]" },
+  { label: "Posts This Month", value: "18", change: "+3", icon: TrendingUp, color: "text-emerald-700" },
 ];
 
 export default function AnalyticsPage() {
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-white">Analytics</h1>
-        <p className="text-gray-400 text-sm mt-0.5">Performance overview across all accounts</p>
+        <h1 className="text-2xl font-semibold text-[#1c1a17]">Analytics</h1>
+        <p className="text-[#6b655b] text-sm mt-0.5">Performance overview across all accounts</p>
       </div>
 
       {/* Summary stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map(({ label, value, change, icon: Icon, color }) => (
-          <div key={label} className="bg-[#111] border border-[#1f1f1f] rounded-xl p-5">
+          <div key={label} className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-5">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-gray-500">{label}</span>
+              <span className="text-xs text-[#857f74]">{label}</span>
               <Icon className={`w-4 h-4 ${color}`} />
             </div>
-            <p className="text-2xl font-semibold text-white">{value}</p>
-            <p className="text-xs text-emerald-400 mt-1">{change} vs last week</p>
+            <p className="text-2xl font-semibold text-[#1c1a17]">{value}</p>
+            <p className="text-xs text-emerald-700 mt-1">{change} vs last week</p>
           </div>
         ))}
       </div>
@@ -59,47 +59,47 @@ export default function AnalyticsPage() {
       {/* Per-platform breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {Object.entries(mockData).map(([platform, data]) => (
-          <div key={platform} className="bg-[#111] border border-[#1f1f1f] rounded-xl p-5 space-y-4">
+          <div key={platform} className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-5 space-y-4">
             <div className="flex items-center gap-2">
               {platform === "instagram" ? (
-                <div className="w-7 h-7 rounded-lg ig-gradient flex items-center justify-center">
-                  <InstagramIcon className="w-3.5 h-3.5 text-white" />
+                <div className="w-7 h-7 rounded-md bg-[#efeae1] border border-[#dbd4c7] flex items-center justify-center">
+                  <InstagramIcon className="w-3.5 h-3.5" style={{ color: "#1c1a17" }} />
                 </div>
               ) : (
-                <div className="w-7 h-7 rounded-lg bg-[#1877F2] flex items-center justify-center">
-                  <FacebookIcon className="w-3.5 h-3.5 text-white" />
+                <div className="w-7 h-7 rounded-md bg-[#efeae1] border border-[#dbd4c7] flex items-center justify-center">
+                  <FacebookIcon className="w-3.5 h-3.5" style={{ color: "#1c1a17" }} />
                 </div>
               )}
-              <span className="text-sm font-semibold text-white capitalize">{platform}</span>
-              <span className="text-xs text-emerald-400 ml-auto">{data.followerGrowth}</span>
+              <span className="text-sm font-semibold text-[#1c1a17] capitalize">{platform}</span>
+              <span className="text-xs text-emerald-700 ml-auto">{data.followerGrowth}</span>
             </div>
 
             <div className="grid grid-cols-3 gap-3">
-              <div className="bg-[#0d0d0d] rounded-lg p-3">
-                <p className="text-xs text-gray-500">Followers</p>
-                <p className="text-base font-semibold text-white mt-0.5">
+              <div className="bg-[#efeae1] rounded-lg p-3">
+                <p className="text-xs text-[#857f74]">Followers</p>
+                <p className="text-base font-semibold text-[#1c1a17] mt-0.5">
                   {data.followers.toLocaleString()}
                 </p>
               </div>
-              <div className="bg-[#0d0d0d] rounded-lg p-3">
-                <p className="text-xs text-gray-500">Reach</p>
-                <p className="text-base font-semibold text-white mt-0.5">
+              <div className="bg-[#efeae1] rounded-lg p-3">
+                <p className="text-xs text-[#857f74]">Reach</p>
+                <p className="text-base font-semibold text-[#1c1a17] mt-0.5">
                   {(data.reach / 1000).toFixed(1)}K
                 </p>
               </div>
-              <div className="bg-[#0d0d0d] rounded-lg p-3">
-                <p className="text-xs text-gray-500">Engagement</p>
-                <p className="text-base font-semibold text-violet-400 mt-0.5">{data.engagement}</p>
+              <div className="bg-[#efeae1] rounded-lg p-3">
+                <p className="text-xs text-[#857f74]">Engagement</p>
+                <p className="text-base font-semibold text-[#1c1a17] mt-0.5">{data.engagement}</p>
               </div>
             </div>
 
             <div>
-              <p className="text-xs text-gray-500 mb-2">Top Posts</p>
+              <p className="text-xs text-[#857f74] mb-2">Top Posts</p>
               <div className="space-y-2">
                 {data.topPosts.map((post, i) => (
-                  <div key={i} className="flex items-center gap-3 bg-[#0d0d0d] rounded-lg px-3 py-2.5">
-                    <p className="text-xs text-gray-300 flex-1 truncate">{post.caption}</p>
-                    <div className="flex items-center gap-3 text-xs text-gray-500 flex-shrink-0">
+                  <div key={i} className="flex items-center gap-3 bg-[#efeae1] rounded-lg px-3 py-2.5">
+                    <p className="text-xs text-[#3c372f] flex-1 truncate">{post.caption}</p>
+                    <div className="flex items-center gap-3 text-xs text-[#857f74] flex-shrink-0">
                       <span className="flex items-center gap-1">
                         <Heart className="w-3 h-3" />{post.likes}
                       </span>
@@ -113,7 +113,7 @@ export default function AnalyticsPage() {
         ))}
       </div>
 
-      <div className="bg-[#111] border border-[#1f1f1f] rounded-xl p-5 text-center text-sm text-gray-500">
+      <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-5 text-center text-sm text-[#857f74]">
         Full analytics charts coming soon — connect your accounts to see live data
       </div>
     </div>

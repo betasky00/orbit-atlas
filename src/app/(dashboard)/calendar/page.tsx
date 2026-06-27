@@ -69,36 +69,36 @@ export default function CalendarPage() {
     <div className="p-8 max-w-5xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-white">Content Calendar</h1>
-          <p className="text-gray-400 text-sm mt-0.5">Plan and visualize your posting schedule</p>
+          <h1 className="text-2xl font-semibold text-[#1c1a17]">Content Calendar</h1>
+          <p className="text-[#6b655b] text-sm mt-0.5">Plan and visualize your posting schedule</p>
         </div>
         <Link
           href="/compose"
-          className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          className="flex items-center gap-2 bg-[#1c1a17] hover:bg-[#000000] text-[#f7f3ec] px-4 py-2 rounded-lg text-sm font-medium transition-colors"
         >
           <Plus className="w-4 h-4" />
           New Post
         </Link>
       </div>
 
-      <div className="bg-[#111] border border-[#1f1f1f] rounded-xl overflow-hidden">
+      <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl overflow-hidden">
         {/* Month nav */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1f1f1f]">
-          <button onClick={prev} className="text-gray-400 hover:text-white transition-colors">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#dbd4c7]">
+          <button onClick={prev} className="text-[#6b655b] hover:text-[#1c1a17] transition-colors">
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <h2 className="text-white font-semibold">
+          <h2 className="text-[#1c1a17] font-semibold">
             {MONTHS[month]} {year}
           </h2>
-          <button onClick={next} className="text-gray-400 hover:text-white transition-colors">
+          <button onClick={next} className="text-[#6b655b] hover:text-[#1c1a17] transition-colors">
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
 
         {/* Day headers */}
-        <div className="grid grid-cols-7 border-b border-[#1f1f1f]">
+        <div className="grid grid-cols-7 border-b border-[#dbd4c7]">
           {DAYS.map((d) => (
-            <div key={d} className="py-2 text-center text-xs font-medium text-gray-500">
+            <div key={d} className="py-2 text-center text-xs font-medium text-[#857f74]">
               {d}
             </div>
           ))}
@@ -117,9 +117,9 @@ export default function CalendarPage() {
               <div
                 key={i}
                 className={cn(
-                  "min-h-24 border-b border-r border-[#1a1a1a] p-2",
-                  !day && "bg-[#0d0d0d]",
-                  day && "hover:bg-[#151515] cursor-pointer transition-colors"
+                  "min-h-24 border-b border-r border-[#e3ddd0] p-2",
+                  !day && "bg-[#efeae1]",
+                  day && "hover:bg-[#e3ddd0] cursor-pointer transition-colors"
                 )}
               >
                 {day && (
@@ -129,14 +129,14 @@ export default function CalendarPage() {
                         className={cn(
                           "text-xs w-5 h-5 flex items-center justify-center rounded-full",
                           isToday
-                            ? "bg-violet-600 text-white font-semibold"
-                            : "text-gray-400"
+                            ? "bg-[#1c1a17] text-[#f7f3ec] font-semibold"
+                            : "text-[#6b655b]"
                         )}
                       >
                         {day}
                       </span>
                       {posts.length > 0 && (
-                        <span className="text-xs text-gray-500">{posts.length}</span>
+                        <span className="text-xs text-[#857f74]">{posts.length}</span>
                       )}
                     </div>
                     <div className="space-y-0.5">
@@ -146,8 +146,8 @@ export default function CalendarPage() {
                           className={cn(
                             "text-xs px-1.5 py-0.5 rounded flex items-center gap-1 truncate",
                             post.status === "scheduled"
-                              ? "bg-violet-600/20 text-violet-300"
-                              : "bg-[#1f1f1f] text-gray-400"
+                              ? "bg-[#1c1a17]/20 text-[#46413a]"
+                              : "bg-[#dbd4c7] text-[#6b655b]"
                           )}
                         >
                           <PlatformDot platform={post.platform} />
@@ -155,7 +155,7 @@ export default function CalendarPage() {
                         </div>
                       ))}
                       {posts.length > 3 && (
-                        <p className="text-xs text-gray-600 pl-1">+{posts.length - 3} more</p>
+                        <p className="text-xs text-[#a39c8d] pl-1">+{posts.length - 3} more</p>
                       )}
                     </div>
                   </>
@@ -167,12 +167,12 @@ export default function CalendarPage() {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-4 text-xs text-gray-500">
+      <div className="flex items-center gap-4 text-xs text-[#857f74]">
         <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded bg-violet-600/50" /> Scheduled
+          <span className="w-2 h-2 rounded bg-[#1c1a17]/50" /> Scheduled
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded bg-[#2a2a2a]" /> Draft
+          <span className="w-2 h-2 rounded bg-[#d4ccbd]" /> Draft
         </span>
         <span className="flex items-center gap-1.5">
           <PlatformDot platform="instagram" /> Instagram
