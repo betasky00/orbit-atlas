@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { signOut } from "next-auth/react";
+import { LogOut } from "lucide-react";
 import {
   LayoutDashboard,
   PlusSquare,
@@ -148,12 +150,16 @@ export function Sidebar({ businesses, currentBusinessId }: SidebarProps) {
 
       {/* Footer */}
       <div className="px-3 py-3 border-t border-[#dbd4c7]">
-        <div className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-[#e3ddd0] cursor-pointer transition-colors">
+        <button
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="w-full flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-[#e3ddd0] cursor-pointer transition-colors"
+        >
           <div className="w-6 h-6 rounded-full bg-[#1c1a17] flex items-center justify-center text-xs text-[#f7f3ec] font-medium">
             O
           </div>
-          <span className="text-xs text-[#6b655b] flex-1">My Account</span>
-        </div>
+          <span className="text-xs text-[#6b655b] flex-1 text-left">My Account</span>
+          <LogOut className="w-3.5 h-3.5 text-[#857f74]" />
+        </button>
       </div>
     </aside>
   );

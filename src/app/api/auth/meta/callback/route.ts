@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getUserPages } from "@/lib/meta";
+import { ensureOwner } from "@/lib/owner";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -46,6 +47,7 @@ export async function GET(req: NextRequest) {
 
   // Get user's pages + IG accounts
   try {
+    await ensureOwner();
     const pages = await getUserPages(accessToken);
 
     // Find the user's first business or create a default one

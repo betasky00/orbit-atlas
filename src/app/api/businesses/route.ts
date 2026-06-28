@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { ensureOwner } from "@/lib/owner";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const session = await auth();
@@ -30,6 +33,7 @@ export async function POST(req: NextRequest) {
   if (!name) {
     return NextResponse.json({ error: "Name required" }, { status: 400 });
   }
+  await ensureOwner();
 
   const business = await db.business.create({
     data: { name, niche, color: color ?? "#6366f1", userId: session.user.id },

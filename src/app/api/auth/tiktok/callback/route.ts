@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { exchangeTikTokCode, getTikTokUserInfo } from "@/lib/tiktok";
+import { ensureOwner } from "@/lib/owner";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -15,6 +16,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    await ensureOwner();
     const tokens = await exchangeTikTokCode(code);
     const userInfo = await getTikTokUserInfo(tokens.access_token);
 

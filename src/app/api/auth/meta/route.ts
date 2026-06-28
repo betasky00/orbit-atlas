@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { ensureOwner } from "@/lib/owner";
 
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  await ensureOwner();
 
   const params = new URLSearchParams({
     client_id: process.env.META_APP_ID!,
