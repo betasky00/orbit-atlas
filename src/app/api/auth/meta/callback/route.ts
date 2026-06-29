@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getUserPages } from "@/lib/meta";
 import { ensureOwner } from "@/lib/owner";
+import { originFrom } from "@/lib/origin";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -9,7 +10,7 @@ export async function GET(req: NextRequest) {
   const state = searchParams.get("state"); // userId
   const error = searchParams.get("error");
 
-  const base = process.env.NEXTAUTH_URL ?? new URL(req.url).origin;
+  const base = originFrom(req);
   const fail = (reason: string) =>
     NextResponse.redirect(`${base}/accounts?error=${encodeURIComponent(reason)}`);
 

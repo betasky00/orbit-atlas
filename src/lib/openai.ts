@@ -33,7 +33,7 @@ export async function generatePostContent(params: {
   const { businessName, niche, platform, mediaDescription, tone = "engaging" } = params;
 
   const completion = await getOpenAI().chat.completions.create({
-    model: "gpt-4o",
+    model: "gpt-4o-mini",
     messages: [
       {
         role: "system",
@@ -74,7 +74,7 @@ export async function generateBio(params: {
   const { businessName, niche, platform, keyPoints } = params;
 
   const completion = await getOpenAI().chat.completions.create({
-    model: "gpt-4o",
+    model: "gpt-4o-mini",
     messages: [
       {
         role: "system",
@@ -111,7 +111,7 @@ export async function getBestPostingTimes(params: {
   const { niche, platform, timezone = "Europe/Paris" } = params;
 
   const completion = await getOpenAI().chat.completions.create({
-    model: "gpt-4o",
+    model: "gpt-4o-mini",
     messages: [
       {
         role: "system",

@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { ensureOwner } from "@/lib/owner";
+import { originFrom } from "@/lib/origin";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -11,7 +12,7 @@ export async function GET() {
 
   const params = new URLSearchParams({
     client_id: process.env.META_APP_ID!,
-    redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/meta/callback`,
+    redirect_uri: `${originFrom(req)}/api/auth/meta/callback`,
     scope: [
       "pages_show_list",
       "pages_read_engagement",

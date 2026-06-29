@@ -8,15 +8,17 @@ export const maxDuration = 120;
 // dropped straight into a template zone (and later composited + uploaded).
 export async function POST(req: NextRequest) {
   try {
-    const { prompt, size = "1024x1024" } = await req.json();
+    const { prompt, size = "1024x1024", quality = "low" } = await req.json();
     if (!prompt) {
       return NextResponse.json({ error: "prompt required" }, { status: 400 });
     }
 
+    // quality "low" keeps gpt-image-1 cost down (~1¢/image vs several ¢ on high).
     const result = await getOpenAI().images.generate({
       model: "gpt-image-1",
       prompt,
       size,
+      quality,
       n: 1,
     });
 
