@@ -1,31 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { loadLibrary, type LibraryItem } from "@/lib/libraryStore";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
-
-const mockPosts: Record<number, { platform: string; caption: string; status: string }[]> = {
-  26: [
-    { platform: "instagram", caption: "Transform your outdoor space 🌿", status: "scheduled" },
-  ],
-  27: [
-    { platform: "facebook", caption: "Spring collection now available", status: "scheduled" },
-  ],
-  28: [
-    { platform: "instagram", caption: "Before & after: Versailles terrace", status: "draft" },
-    { platform: "instagram", caption: "Team spotlight: Our head designer", status: "scheduled" },
-  ],
-  30: [
-    { platform: "facebook", caption: "Client testimonial — Neuilly-sur-Seine", status: "scheduled" },
-  ],
-};
 
 function PlatformDot({ platform }: { platform: string }) {
   const colors: Record<string, string> = {
@@ -45,6 +30,25 @@ export default function CalendarPage() {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
+  const [items, setItems] = useState<LibraryItem[]>([]);
+
+  useEffect(() => setItems(loadLibrary()), []);
+
+  // Bucket scheduled library posts by day-of-month for the visible month.
+  const scheduled: Record<number, { platform: string; caption: string; status: string }[]> = {};
+  for (const it of items) {
+    if (!it.scheduledAt) continue;
+    const d = new Date(it.scheduledAt);
+    if (d.getFullYear() === year && d.getMonth() === month) {
+      const day = d.getDate();
+      (scheduled[day] ??= []).push({
+        platform: it.platform ?? "instagram",
+        caption: it.caption || it.name,
+        status: it.status,
+      });
+    }
+  }
+  const mockPosts = scheduled;
 
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -73,7 +77,7 @@ export default function CalendarPage() {
           <p className="text-[#6b655b] text-sm mt-0.5">Plan and visualize your posting schedule</p>
         </div>
         <Link
-          href="/compose"
+          href="/studio"
           className="flex items-center gap-2 bg-[#1c1a17] hover:bg-[#000000] text-[#f7f3ec] px-4 py-2 rounded-lg text-sm font-medium transition-colors"
         >
           <Plus className="w-4 h-4" />

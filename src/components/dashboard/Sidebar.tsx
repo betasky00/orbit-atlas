@@ -18,6 +18,8 @@ import {
   Newspaper,
   LayoutTemplate,
   Film,
+  Palette,
+  Library,
 } from "lucide-react";
 import { InstagramIcon, FacebookIcon, TikTokIcon } from "@/components/ui/SocialIcons";
 import { cn } from "@/lib/utils";
@@ -39,11 +41,11 @@ const nav = [
   { href: "/studio", label: "News Studio", icon: Newspaper },
   { href: "/reels", label: "Reel Remix", icon: Film },
   { href: "/templates", label: "Templates", icon: LayoutTemplate },
-  { href: "/compose", label: "Create Post", icon: PlusSquare },
+  { href: "/library", label: "Library", icon: Library },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/analytics", label: "Analytics", icon: BarChart2 },
+  { href: "/brand", label: "Brand Kit", icon: Palette },
   { href: "/accounts", label: "Accounts", icon: Users },
-  { href: "/ai", label: "AI Tools", icon: Sparkles },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

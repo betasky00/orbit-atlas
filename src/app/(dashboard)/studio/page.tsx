@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Sparkles,
   Loader2,
-  Image as ImageIcon,
   Upload,
   Wand2,
   Send,
@@ -12,10 +11,15 @@ import {
   RefreshCw,
   Newspaper,
   Download,
+  Save,
+  Shuffle,
+  Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TemplateCanvas } from "@/components/template/TemplateCanvas";
 import { allTemplates } from "@/lib/templateStore";
+import { loadBrand, type BrandKit } from "@/lib/brandStore";
+import { saveItem, downscaleDataUrl } from "@/lib/libraryStore";
 import type { TemplateDef, TemplateContent } from "@/lib/templates";
 
 const PLATFORMS = ["instagram", "facebook", "tiktok"];
@@ -40,8 +44,22 @@ export default function StudioPage() {
   const [status, setStatus] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const [brand, setBrand] = useState<BrandKit | null>(null);
+  const [variations, setVariations] = useState<string[]>([]);
+  const [remixing, setRemixing] = useState(false);
+  const [bulkMode, setBulkMode] = useState(false);
+  const [bulkTopics, setBulkTopics] = useState("");
+  const [bulkRunning, setBulkRunning] = useState(false);
+
   useEffect(() => {
     setTemplates(allTemplates());
+    const b = loadBrand();
+    setBrand(b);
+    if (b.businessName) setBusinessName(b.businessName);
+    if (b.niche) setNiche(b.niche);
+    if (b.handle || b.logo) {
+      setContent((c) => ({ ...c, brand: b.handle, ...(b.logo ? { logo: b.logo } : {}) }));
+    }
   }, []);
 
   const template = useMemo(
@@ -63,6 +81,7 @@ export default function StudioPage() {
           businessName,
           niche,
           platform,
+          brandVoice: brand?.voice,
           rules: template?.rules,
         }),
       });
@@ -76,7 +95,7 @@ export default function StudioPage() {
         kicker: data.kicker ?? "",
         headline: data.headline ?? "",
         body: data.body ?? "",
-        brand: data.brand || businessName,
+        brand: brand?.handle || data.brand || businessName,
       }));
       setCaption(data.caption ?? "");
       setHashtags(data.hashtags ?? []);
@@ -183,6 +202,94 @@ export default function StudioPage() {
     }
   };
 
+  // ----- save the current post to the content library -----
+  const saveToLibrary = async () => {
+    if (!template) return;
+    setStatus(null);
+    const slimImage = content.image ? await downscaleDataUrl(content.image, 1080) : undefined;
+    saveItem({
+      id: `lib-${Date.now()}`,
+      createdAt: Date.now(),
+      name: content.headline || topic.slice(0, 40) || "Untitled post",
+      caption,
+      hashtags,
+      firstComment,
+      platform,
+      template: {
+        width: template.width,
+        height: template.height,
+        background: template.background,
+        zones: template.zones,
+      },
+      content: { ...content, ...(slimImage ? { image: slimImage } : {}) },
+      status: "draft",
+    });
+    setStatus("Saved to library ✓");
+  };
+
+  // ----- remix the caption into 3 angles -----
+  const remixCaption = async () => {
+    if (!caption.trim()) return;
+    setRemixing(true);
+    try {
+      const res = await fetch("/api/ai/remix", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ caption, platform, niche }),
+      });
+      const data = await res.json();
+      if (data.variations) setVariations(data.variations);
+    } catch {
+      /* ignore */
+    } finally {
+      setRemixing(false);
+    }
+  };
+
+  // ----- bulk: turn many topics into saved drafts at once -----
+  const runBulk = async () => {
+    const lines = bulkTopics.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (lines.length === 0 || !template) return;
+    setBulkRunning(true);
+    setStatus(null);
+    let saved = 0;
+    for (const line of lines) {
+      try {
+        const res = await fetch("/api/ai/news", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ topic: line, businessName, niche, platform, brandVoice: brand?.voice, rules: template.rules }),
+        });
+        const data = await res.json();
+        if (data.error) continue;
+        saveItem({
+          id: `lib-${Date.now()}-${saved}`,
+          createdAt: Date.now() + saved,
+          name: data.headline || line.slice(0, 40),
+          caption: data.caption ?? "",
+          hashtags: data.hashtags ?? [],
+          firstComment: data.firstComment ?? "",
+          platform,
+          template: { width: template.width, height: template.height, background: template.background, zones: template.zones },
+          content: {
+            kicker: data.kicker ?? "",
+            headline: data.headline ?? "",
+            body: data.body ?? "",
+            brand: brand?.handle ?? "",
+            ...(brand?.logo ? { logo: brand.logo } : {}),
+          },
+          status: "draft",
+        });
+        saved++;
+      } catch {
+        /* skip line */
+      }
+    }
+    setBulkRunning(false);
+    setStatus(`Generated ${saved} draft${saved === 1 ? "" : "s"} → saved to Library (add images there or in Studio).`);
+    setBulkTopics("");
+  };
+
   const previewWidth = 380;
   const scale = template ? previewWidth / template.width : 0.35;
 
@@ -190,12 +297,24 @@ export default function StudioPage() {
     <div className="p-8 max-w-6xl mx-auto">
       <div className="mb-6 flex items-center gap-2">
         <Newspaper className="w-5 h-5 text-[#1c1a17]" />
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-semibold text-[#1c1a17]">News Studio</h1>
           <p className="text-[#6b655b] text-sm mt-0.5">
-            Paste a news item → AI writes the post, generates the image, drops it into your template. Post instantly.
+            Paste a news item → AI writes the post, generates the image, drops it into your template.
           </p>
         </div>
+        <button
+          onClick={() => setBulkMode((b) => !b)}
+          className={cn(
+            "flex items-center gap-2 px-3 py-2 rounded-lg text-sm border transition-colors",
+            bulkMode
+              ? "bg-[#1c1a17] text-[#f7f3ec] border-transparent"
+              : "border-[#c4bbab] text-[#1c1a17] hover:border-[#1c1a17]/40"
+          )}
+        >
+          <Layers className="w-4 h-4" />
+          Bulk mode
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -251,6 +370,31 @@ export default function StudioPage() {
               ))}
             </select>
           </div>
+
+          {/* Bulk panel */}
+          {bulkMode && (
+            <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-4">
+              <p className="text-xs text-[#6b655b] font-medium mb-2">Bulk topics — one per line</p>
+              <textarea
+                value={bulkTopics}
+                onChange={(e) => setBulkTopics(e.target.value)}
+                rows={6}
+                placeholder={"New product launch this week\nIndustry award we just won\nWeekend sale announcement"}
+                className="w-full bg-[#efeae1] border border-[#d4ccbd] rounded-lg px-3 py-2 text-sm text-[#1c1a17] placeholder-[#a39c8d] resize-none outline-none focus:border-[#1c1a17]/50"
+              />
+              <button
+                onClick={runBulk}
+                disabled={bulkRunning || !bulkTopics.trim()}
+                className="mt-3 w-full bg-[#1c1a17] hover:bg-[#000000] disabled:opacity-50 text-[#f7f3ec] py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              >
+                {bulkRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Layers className="w-4 h-4" />}
+                {bulkRunning ? "Generating drafts…" : "Generate all → Library"}
+              </button>
+              <p className="text-xs text-[#a39c8d] mt-2">
+                Each line becomes a draft (text only, to save cost) in your Library. Add images there.
+              </p>
+            </div>
+          )}
 
           {/* News input */}
           <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-4">
@@ -381,6 +525,29 @@ export default function StudioPage() {
                   ))}
                 </div>
               )}
+
+              <button
+                onClick={remixCaption}
+                disabled={remixing}
+                className="flex items-center gap-1.5 text-xs text-[#1c1a17] hover:text-[#000] border border-[#c4bbab] hover:border-[#1c1a17]/40 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {remixing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Shuffle className="w-3.5 h-3.5" />}
+                Remix caption
+              </button>
+
+              {variations.length > 0 && (
+                <div className="space-y-1.5">
+                  {variations.map((v, i) => (
+                    <button
+                      key={i}
+                      onClick={() => { setCaption(v); setVariations([]); }}
+                      className="w-full text-left text-xs text-[#3c372f] bg-[#efeae1] hover:bg-[#e8e1d4] border border-[#dbd4c7] rounded-lg p-2.5 transition-colors"
+                    >
+                      {v}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -394,14 +561,23 @@ export default function StudioPage() {
               Post now
             </button>
             <button
-              onClick={() => publish("schedule")}
-              disabled={publishing || !content.image}
+              onClick={saveToLibrary}
+              disabled={!caption && !content.headline}
               className="flex-1 border border-[#d4ccbd] hover:border-[#c4bbab] disabled:opacity-50 text-[#1c1a17] py-3 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
             >
-              <Clock className="w-4 h-4" />
-              Schedule
+              <Save className="w-4 h-4" />
+              Save to library
             </button>
           </div>
+
+          <button
+            onClick={() => publish("schedule")}
+            disabled={publishing || !content.image}
+            className="w-full border border-[#d4ccbd] hover:border-[#c4bbab] disabled:opacity-50 text-[#1c1a17] py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
+          >
+            <Clock className="w-4 h-4" />
+            Schedule (auto-publish)
+          </button>
 
           {status && (
             <div className="bg-[#efeae1] border border-[#dbd4c7] rounded-lg px-4 py-2.5 text-xs text-[#3c372f]">
