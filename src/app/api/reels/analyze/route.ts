@@ -4,90 +4,75 @@ import { getOpenAI } from "@/lib/openai";
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
-interface Frame {
-  time: number; // seconds into the video
-  dataUrl: string; // downscaled JPEG
+interface Shot {
+  index: number;
+  time: number;
+  duration: number;
+  dataUrl: string; // representative frame
 }
 
 interface AnalyzeBody {
-  frames: Frame[];
-  duration: number;
+  shots: Shot[];
+  totalDuration: number;
   aspectRatio?: string;
   sourceName?: string;
 }
 
-// Reverse-engineer a reel's edit from sampled frames.
+// The cuts are detected client-side (frame differencing). Here the AI just
+// DESCRIBES each detected shot + overall vibe, so the user knows what to film
+// for each slot. One representative frame per shot keeps cost low.
 export async function POST(req: NextRequest) {
   try {
-    const { frames, duration, aspectRatio = "9:16", sourceName } =
+    const { shots, totalDuration, aspectRatio = "9:16", sourceName } =
       (await req.json()) as AnalyzeBody;
 
-    if (!frames?.length) {
-      return NextResponse.json({ error: "frames required" }, { status: 400 });
+    if (!shots?.length) {
+      return NextResponse.json({ error: "shots required" }, { status: 400 });
     }
 
-    // Build the multimodal message: each frame labelled with its timestamp so
-    // the model can reason about cut timing.
-    const imageParts = frames.map((f) => ({
+    // Cap how many frames we send to bound tokens; sample evenly if needed.
+    const MAX = 24;
+    const sample =
+      shots.length <= MAX
+        ? shots
+        : shots.filter((_, i) => i % Math.ceil(shots.length / MAX) === 0).slice(0, MAX);
+
+    const imageParts = sample.map((s) => ({
       type: "image_url" as const,
-      image_url: { url: f.dataUrl, detail: "low" as const },
+      image_url: { url: s.dataUrl, detail: "low" as const },
     }));
 
-    const timeline = frames.map((f) => `${f.time.toFixed(2)}s`).join(", ");
+    const shotList = sample
+      .map((s) => `Shot ${s.index} @ ${s.time.toFixed(2)}s (${s.duration.toFixed(2)}s long)`)
+      .join("; ");
 
     const completion = await getOpenAI().chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: `You are a senior short-form video editor. You are given frames sampled from
-a ${duration.toFixed(
+          content: `You are a short-form video editor. The cut points of a ${totalDuration.toFixed(
             1
-          )}s vertical reel (timestamps: ${timeline}). Reverse-engineer the EDIT so
-someone can recreate the exact same structure with their own footage.
-
-Detect: where the cuts are (group consecutive similar frames into one shot, split
-when the scene changes), each shot's duration, the on-screen text and its position,
-the transition style between shots, camera movement, the overall pacing, and the
-likely music vibe/energy (infer from cut rhythm and content — state it's an estimate).
-
-Respond with STRICT JSON only:
+          )}s vertical reel have already been detected precisely. You are given one frame per
+shot, in order (${shotList}). Describe each shot so the user can recreate it with their own
+footage, and give overall guidance. Respond with STRICT JSON only:
 {
-  "totalDuration": ${duration},
-  "aspectRatio": "${aspectRatio}",
-  "pacing": "fast" | "medium" | "slow",
-  "musicVibe": "short description of the music mood/genre/energy",
-  "bpmGuess": number or null,
-  "hook": "what grabs attention in the first ~3 seconds",
   "shots": [
-    {
-      "index": 0,
-      "start": 0.0, "end": 1.2, "duration": 1.2,
-      "kind": "clip" | "image" | "text-card",
-      "description": "what is shown / what the user should film here",
-      "onScreenText": "exact text on screen or null",
-      "textPosition": "top" | "center" | "bottom",
-      "transitionIn": "cut" | "fade" | "dissolve" | "slide" | "zoom-in" | "zoom-out" | "whip-pan" | "match-cut" | "flash",
-      "transitionOut": "cut" | "fade" | "...",
-      "cameraMove": "e.g. static, push-in, handheld",
-      "replaceable": true
-    }
+    { "index": 0, "description": "what to film / what's shown", "onScreenText": "text on screen or null" }
   ],
-  "caption": "a caption the user could post with their recreation",
+  "musicVibe": "inferred music mood/energy (estimate)",
+  "pacing": "fast" | "medium" | "slow",
+  "hook": "what grabs attention in the first ~3s",
+  "caption": "a caption to post with the recreation",
   "hashtags": ["..."],
-  "editingNotes": ["actionable tips to match this edit, e.g. 'cut on every beat', 'keep each clip under 1.5s'"]
+  "editingNotes": ["actionable tips to match this edit"]
 }
-Make shot timings add up to roughly the total duration. Mark text-only frames as kind "text-card".`,
+Return one shots[] entry per frame I gave you, matching the Shot indexes.`,
         },
         {
           role: "user",
           content: [
-            {
-              type: "text",
-              text: `Analyze this reel${
-                sourceName ? ` ("${sourceName}")` : ""
-              } and return the blueprint JSON. The frames are in chronological order.`,
-            },
+            { type: "text", text: `Analyze this reel${sourceName ? ` ("${sourceName}")` : ""}.` },
             ...imageParts,
           ],
         },
@@ -98,9 +83,7 @@ Make shot timings add up to roughly the total duration. Mark text-only frames as
 
     const content = completion.choices[0].message.content;
     if (!content) throw new Error("No content from model");
-
-    const parsed = JSON.parse(content);
-    return NextResponse.json(parsed);
+    return NextResponse.json(JSON.parse(content));
   } catch (err) {
     console.error("Reel analyze error:", err);
     return NextResponse.json(
