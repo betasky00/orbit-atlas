@@ -117,21 +117,41 @@ model SocialAccount {
 // `layout` holds the visual zones (image/text/logo positions).
 // `rules` holds the AI content rules (tone, structure, hashtag count, etc.)
 model Template {
-  id          String   @id @default(cuid())
-  businessId  String
-  name        String
-  postType    String?  // "news" | "product" | "testimonial" | "quote" | "announcement"
-  width       Int      @default(1080)
-  height      Int      @default(1080)
-  background  String?  // hex color or background image URL
-  layout      String   @default("[]") // JSON array of zones
-  rules       String?  // JSON content rules
-  sampleImage String?  // the reference image the user uploaded
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  businessId      String?
+  socialAccountId String? // null = shared with whole workspace; else scoped to this account
+  createdById     String?
+  name            String
+  postType        String?
+  width           Int      @default(1080)
+  height          Int      @default(1080)
+  background      String?
+  layout          String   @default("[]") // JSON array of zones
+  rules           String?  // JSON content rules
+  sampleImage     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  business Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
   posts    Post[]
+}
+
+// Server-side Content Library item, optionally scoped to one social account.
+model SavedPost {
+  id              String    @id @default(cuid())
+  socialAccountId String? // null = shared with whole workspace
+  createdById     String?
+  name            String
+  caption         String?
+  hashtags        String?  // space-separated
+  firstComment    String?
+  templateJson    String   // JSON {width,height,background,zones}
+  contentJson     String   // JSON content map (incl. image data url)
+  platform        String?
+  scheduledAt     DateTime?
+  status          String    @default("draft")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model Post {

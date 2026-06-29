@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Users, Plus, Trash2, Loader2, Check, KeyRound } from "lucide-react";
+import { Users, Plus, Trash2, Loader2, Check, KeyRound, Pencil } from "lucide-react";
 import { InstagramIcon, FacebookIcon, TikTokIcon } from "@/components/ui/SocialIcons";
 
 interface Account { id: string; platform: string; username: string; displayName?: string | null }
@@ -75,6 +75,19 @@ export default function TeamPage() {
       body: JSON.stringify({ password: pw }),
     });
     alert("Password updated. Send it to your team member.");
+  };
+
+  const changeUsername = async (member: Member) => {
+    const next = prompt(`New username for ${member.username}:`, member.username);
+    if (!next || next === member.username) return;
+    const res = await fetch(`/api/team/${member.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username: next }),
+    });
+    const data = await res.json();
+    if (data.error) { alert(data.error); return; }
+    load();
   };
 
   const remove = async (member: Member) => {
@@ -165,8 +178,11 @@ export default function TeamPage() {
                     <p className="text-xs text-[#857f74]">@{m.username}</p>
                   </div>
                   <div className="flex items-center gap-3">
+                    <button onClick={() => changeUsername(m)} className="text-[#857f74] hover:text-[#1c1a17] flex items-center gap-1 text-xs">
+                      <Pencil className="w-3.5 h-3.5" /> Username
+                    </button>
                     <button onClick={() => resetPassword(m)} className="text-[#857f74] hover:text-[#1c1a17] flex items-center gap-1 text-xs">
-                      <KeyRound className="w-3.5 h-3.5" /> Reset password
+                      <KeyRound className="w-3.5 h-3.5" /> Password
                     </button>
                     <button onClick={() => remove(m)} className="text-[#a39c8d] hover:text-red-600">
                       <Trash2 className="w-4 h-4" />

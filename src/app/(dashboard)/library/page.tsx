@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Library, Download, Copy, Trash2, Check, Clock, Plus } from "lucide-react";
 import { TemplateCanvas } from "@/components/template/TemplateCanvas";
-import { loadLibrary, deleteItem, updateItem, type LibraryItem } from "@/lib/libraryStore";
+import { fetchLibrary, deleteLibraryItem, updateLibraryItem, type LibraryItem } from "@/lib/libraryStore";
 
 export default function LibraryPage() {
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [copied, setCopied] = useState<string | null>(null);
 
-  const refresh = () => setItems(loadLibrary());
-  useEffect(refresh, []);
+  const refresh = async () => setItems(await fetchLibrary());
+  useEffect(() => { refresh(); }, []);
 
   const download = async (item: LibraryItem) => {
     const res = await fetch("/api/render", {
@@ -35,13 +35,13 @@ export default function LibraryPage() {
     setTimeout(() => setCopied(null), 1500);
   };
 
-  const schedule = (item: LibraryItem, value: string) => {
-    updateItem(item.id, { scheduledAt: value || null, status: value ? "scheduled" : "draft" });
+  const schedule = async (item: LibraryItem, value: string) => {
+    await updateLibraryItem(item.id, { scheduledAt: value || null });
     refresh();
   };
 
-  const remove = (id: string) => {
-    deleteItem(id);
+  const remove = async (id: string) => {
+    await deleteLibraryItem(id);
     refresh();
   };
 

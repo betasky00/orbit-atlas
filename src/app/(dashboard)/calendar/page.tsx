@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { loadLibrary, type LibraryItem } from "@/lib/libraryStore";
+import { fetchLibrary, type LibraryItem } from "@/lib/libraryStore";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = [
@@ -32,7 +32,7 @@ export default function CalendarPage() {
   const [month, setMonth] = useState(today.getMonth());
   const [items, setItems] = useState<LibraryItem[]>([]);
 
-  useEffect(() => setItems(loadLibrary()), []);
+  useEffect(() => { fetchLibrary().then(setItems); }, []);
 
   // Bucket scheduled library posts by day-of-month for the visible month.
   const scheduled: Record<number, { platform: string; caption: string; status: string }[]> = {};

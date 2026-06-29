@@ -17,10 +17,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const { id } = await params;
-  const { accountIds, password, name } = await req.json();
+  const { accountIds, password, name, username } = await req.json();
 
   const member = await db.user.findFirst({ where: { id, role: "member" } });
   if (!member) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  if (typeof username === "string" && username.trim()) {
+    const uname = username.trim().toLowerCase();
+    if (uname === (process.env.ADMIN_USERNAME || "admin")) {
+      return NextResponse.json({ error: "That username is reserved" }, { status: 400 });
+    }
+    const clash = await db.user.findFirst({ where: { username: uname, NOT: { id } } });
+    if (clash) return NextResponse.json({ error: "Username already taken" }, { status: 400 });
+    await db.user.update({ where: { id }, data: { username: uname } });
+  }
 
   if (Array.isArray(accountIds)) {
     // Replace the access set.

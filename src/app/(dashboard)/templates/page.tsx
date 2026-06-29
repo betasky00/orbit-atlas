@@ -4,13 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Loader2, Upload, Sparkles, Trash2, Plus, LayoutTemplate, Check, Pencil } from "lucide-react";
 import { TemplateCanvas } from "@/components/template/TemplateCanvas";
-import {
-  allTemplates,
-  saveUserTemplate,
-  deleteUserTemplate,
-  loadUserTemplates,
-} from "@/lib/templateStore";
+import { fetchAllTemplates, saveTemplate, deleteTemplate, type ServerTemplate } from "@/lib/templateStore";
 import type { TemplateDef } from "@/lib/templates";
+
+interface Account { id: string; platform: string; username: string }
 
 const SAMPLE_CONTENT = {
   kicker: "BREAKING",
@@ -20,15 +17,20 @@ const SAMPLE_CONTENT = {
 };
 
 export default function TemplatesPage() {
-  const [templates, setTemplates] = useState<TemplateDef[]>([]);
+  const [templates, setTemplates] = useState<ServerTemplate[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [accountId, setAccountId] = useState<string>(""); // "" = shared
   const [analyzing, setAnalyzing] = useState(false);
   const [draft, setDraft] = useState<TemplateDef | null>(null);
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const refresh = () => setTemplates(allTemplates());
-  useEffect(refresh, []);
+  const refresh = async () => setTemplates(await fetchAllTemplates());
+  useEffect(() => {
+    refresh();
+    fetch("/api/analytics").then((r) => (r.ok ? r.json() : [])).then((d) => setAccounts(Array.isArray(d) ? d : []));
+  }, []);
 
   const onUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -69,20 +71,20 @@ export default function TemplatesPage() {
     reader.readAsDataURL(file);
   };
 
-  const saveDraft = () => {
+  const saveDraft = async () => {
     if (!draft) return;
-    saveUserTemplate({ ...draft, name: name || draft.name });
+    await saveTemplate({ ...draft, name: name || draft.name }, accountId || null);
     setDraft(null);
     setName("");
     refresh();
   };
 
-  const remove = (id: string) => {
-    deleteUserTemplate(id);
+  const remove = async (id: string) => {
+    await deleteTemplate(id);
     refresh();
   };
 
-  const userIds = new Set(loadUserTemplates().map((t) => t.id));
+  const isPreset = (id: string) => id.startsWith("preset-");
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8">
@@ -112,6 +114,17 @@ export default function TemplatesPage() {
             placeholder="Template name (e.g. Daily News Card)"
             className="flex-1 bg-[#efeae1] border border-[#d4ccbd] rounded-lg px-3 py-2 text-sm text-[#1c1a17] placeholder-[#a39c8d] outline-none focus:border-[#1c1a17]/50"
           />
+          <select
+            value={accountId}
+            onChange={(e) => setAccountId(e.target.value)}
+            title="Which account can see this template"
+            className="bg-[#efeae1] border border-[#d4ccbd] rounded-lg px-3 py-2 text-sm text-[#1c1a17] outline-none focus:border-[#1c1a17]/50"
+          >
+            <option value="">Shared (everyone)</option>
+            {accounts.map((a) => (
+              <option key={a.id} value={a.id}>@{a.username}</option>
+            ))}
+          </select>
           <button
             onClick={() => fileRef.current?.click()}
             disabled={analyzing}
@@ -203,7 +216,13 @@ export default function TemplatesPage() {
               <div className="px-3 py-2.5 flex items-center justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-sm text-[#1c1a17] truncate">{t.name}</p>
-                  <p className="text-xs text-[#857f74]">{t.preset ? "Preset" : t.postType ?? "Custom"}</p>
+                  <p className="text-xs text-[#857f74] truncate">
+                    {t.preset
+                      ? "Preset"
+                      : t.socialAccountId
+                      ? `@${accounts.find((a) => a.id === t.socialAccountId)?.username ?? "account"}`
+                      : "Shared"}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <Link
@@ -213,7 +232,7 @@ export default function TemplatesPage() {
                   >
                     <Pencil className="w-4 h-4" />
                   </Link>
-                  {userIds.has(t.id) && (
+                  {!isPreset(t.id) && (
                     <button
                       onClick={() => remove(t.id)}
                       className="text-[#a39c8d] hover:text-red-600 transition-colors"

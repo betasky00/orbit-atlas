@@ -2,13 +2,10 @@
 
 import type { Zone, TemplateContent } from "@/lib/templates";
 
-// Content Library — every saved/generated post, in localStorage. Each item is
-// self-contained (carries its own template snapshot) so it can be previewed and
-// re-rendered even if the source template is later changed or deleted.
+// Server-backed Content Library (shared across the team, scoped by account access).
 
 export interface LibraryItem {
   id: string;
-  createdAt: number;
   name: string;
   caption: string;
   hashtags: string[];
@@ -16,56 +13,56 @@ export interface LibraryItem {
   template: { width: number; height: number; background?: string; zones: Zone[] };
   content: TemplateContent;
   platform?: string;
-  scheduledAt?: string | null; // ISO datetime
+  socialAccountId?: string | null;
+  scheduledAt?: string | null;
   status: "draft" | "scheduled" | "posted";
 }
 
-const KEY = "orbit.library";
-const MAX_ITEMS = 40;
-
-export function loadLibrary(): LibraryItem[] {
-  if (typeof window === "undefined") return [];
+export async function fetchLibrary(): Promise<LibraryItem[]> {
   try {
-    return JSON.parse(localStorage.getItem(KEY) || "[]");
+    const res = await fetch("/api/library");
+    if (!res.ok) return [];
+    return await res.json();
   } catch {
     return [];
   }
 }
 
-function persist(items: LibraryItem[]) {
-  // Keep newest first, cap the count, and degrade gracefully if storage is full.
-  const trimmed = [...items].sort((a, b) => b.createdAt - a.createdAt).slice(0, MAX_ITEMS);
+export async function saveLibraryItem(item: Omit<LibraryItem, "id" | "status">): Promise<string | null> {
   try {
-    localStorage.setItem(KEY, JSON.stringify(trimmed));
+    const res = await fetch("/api/library", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(item),
+    });
+    const data = await res.json();
+    return data.id ?? null;
   } catch {
-    // quota exceeded — drop the oldest half and retry once
-    try {
-      localStorage.setItem(KEY, JSON.stringify(trimmed.slice(0, Math.ceil(trimmed.length / 2))));
-    } catch {
-      /* give up silently */
-    }
+    return null;
   }
 }
 
-export function saveItem(item: LibraryItem): LibraryItem {
-  const items = loadLibrary();
-  const idx = items.findIndex((i) => i.id === item.id);
-  if (idx >= 0) items[idx] = item;
-  else items.push(item);
-  persist(items);
-  return item;
+export async function updateLibraryItem(id: string, patch: Partial<LibraryItem>): Promise<void> {
+  try {
+    await fetch(`/api/library/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+  } catch {
+    /* ignore */
+  }
 }
 
-export function deleteItem(id: string) {
-  persist(loadLibrary().filter((i) => i.id !== id));
+export async function deleteLibraryItem(id: string): Promise<void> {
+  try {
+    await fetch(`/api/library/${id}`, { method: "DELETE" });
+  } catch {
+    /* ignore */
+  }
 }
 
-export function updateItem(id: string, patch: Partial<LibraryItem>) {
-  const items = loadLibrary().map((i) => (i.id === id ? { ...i, ...patch } : i));
-  persist(items);
-}
-
-// Downscale a data URL to keep localStorage small while staying post-quality.
+// Downscale a data URL to keep payloads small while staying post-quality.
 export async function downscaleDataUrl(dataUrl: string, max = 1080): Promise<string> {
   if (!dataUrl.startsWith("data:")) return dataUrl;
   return new Promise((resolve) => {

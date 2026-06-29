@@ -2,35 +2,48 @@
 
 import { PRESET_TEMPLATES, type TemplateDef } from "@/lib/templates";
 
-// Lightweight client store so templates work instantly without auth/DB.
-// User-created templates persist in localStorage; presets are always available.
-// (The /api/templates route is the eventual server-side home once login is on.)
+// Server-backed templates (shared across the team, scoped by account access),
+// merged with the read-only built-in presets for display.
 
-const KEY = "orbit.templates";
+export type ServerTemplate = TemplateDef & { socialAccountId?: string | null };
 
-export function loadUserTemplates(): TemplateDef[] {
-  if (typeof window === "undefined") return [];
+export async function fetchTemplates(): Promise<ServerTemplate[]> {
   try {
-    return JSON.parse(localStorage.getItem(KEY) || "[]");
+    const res = await fetch("/api/templates");
+    if (!res.ok) return [];
+    return await res.json();
   } catch {
     return [];
   }
 }
 
-export function allTemplates(): TemplateDef[] {
-  return [...PRESET_TEMPLATES, ...loadUserTemplates()];
+// Presets + the user's server templates (presets first).
+export async function fetchAllTemplates(): Promise<ServerTemplate[]> {
+  const server = await fetchTemplates();
+  return [...PRESET_TEMPLATES, ...server];
 }
 
-export function saveUserTemplate(t: TemplateDef): TemplateDef {
-  const list = loadUserTemplates();
-  const idx = list.findIndex((x) => x.id === t.id);
-  if (idx >= 0) list[idx] = t;
-  else list.push(t);
-  localStorage.setItem(KEY, JSON.stringify(list));
-  return t;
+export async function saveTemplate(
+  t: TemplateDef,
+  socialAccountId?: string | null
+): Promise<string | null> {
+  try {
+    const res = await fetch("/api/templates", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...t, socialAccountId: socialAccountId ?? null }),
+    });
+    const data = await res.json();
+    return data.id ?? null;
+  } catch {
+    return null;
+  }
 }
 
-export function deleteUserTemplate(id: string) {
-  const list = loadUserTemplates().filter((x) => x.id !== id);
-  localStorage.setItem(KEY, JSON.stringify(list));
+export async function deleteTemplate(id: string): Promise<void> {
+  try {
+    await fetch(`/api/templates/${id}`, { method: "DELETE" });
+  } catch {
+    /* ignore */
+  }
 }

@@ -12,8 +12,10 @@ import {
   Upload,
   Sparkles,
 } from "lucide-react";
-import { allTemplates, saveUserTemplate } from "@/lib/templateStore";
+import { fetchAllTemplates, saveTemplate } from "@/lib/templateStore";
 import type { TemplateDef, Zone, ZoneType, TemplateRules } from "@/lib/templates";
+
+interface Account { id: string; platform: string; username: string }
 
 const DISPLAY_W = 420;
 
@@ -47,20 +49,26 @@ function EditorInner() {
   const [zones, setZones] = useState<Zone[]>([]);
   const [rules, setRules] = useState<TemplateRules>({});
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [accountId, setAccountId] = useState<string>("");
   const bgFileRef = useRef<HTMLInputElement>(null);
   const zoneFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    fetch("/api/analytics").then((r) => (r.ok ? r.json() : [])).then((d) => setAccounts(Array.isArray(d) ? d : []));
     if (!id) return;
-    const t = allTemplates().find((x) => x.id === id);
-    if (t) {
-      setName(t.preset ? `${t.name} (copy)` : t.name);
+    fetchAllTemplates().then((all) => {
+      const t = all.find((x) => x.id === id);
+      if (!t) return;
+      const preset = t.id.startsWith("preset-");
+      setName(preset ? `${t.name} (copy)` : t.name);
       setWidth(t.width);
       setHeight(t.height);
       setBackground(t.background ?? "#111111");
       setZones(t.zones.map((z) => ({ ...z })));
       setRules(t.rules ?? {});
-    }
+      if (t.socialAccountId) setAccountId(t.socialAccountId);
+    });
   }, [id]);
 
   const scale = DISPLAY_W / width;
@@ -128,7 +136,7 @@ function EditorInner() {
     reader.readAsDataURL(file);
   };
 
-  const save = () => {
+  const save = async () => {
     const tpl: TemplateDef = {
       id: id && !id.startsWith("preset-") ? id : `tpl-${Date.now()}`,
       name: name || "My Template",
@@ -138,7 +146,7 @@ function EditorInner() {
       zones,
       rules,
     };
-    saveUserTemplate(tpl);
+    await saveTemplate(tpl, accountId || null);
     router.push("/templates");
   };
 
@@ -158,13 +166,26 @@ function EditorInner() {
             className="bg-transparent text-lg font-semibold text-[#1c1a17] outline-none border-b border-transparent focus:border-[#c4bbab]"
           />
         </div>
-        <button
-          onClick={save}
-          className="flex items-center gap-2 bg-[#1c1a17] hover:bg-[#000000] text-[#f7f3ec] px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-        >
-          <Save className="w-4 h-4" />
-          Save template
-        </button>
+        <div className="flex items-center gap-2">
+          <select
+            value={accountId}
+            onChange={(e) => setAccountId(e.target.value)}
+            title="Which account can see this template"
+            className="bg-[#efeae1] border border-[#d4ccbd] rounded-lg px-3 py-2 text-sm text-[#1c1a17] outline-none"
+          >
+            <option value="">Shared (everyone)</option>
+            {accounts.map((a) => (
+              <option key={a.id} value={a.id}>@{a.username}</option>
+            ))}
+          </select>
+          <button
+            onClick={save}
+            className="flex items-center gap-2 bg-[#1c1a17] hover:bg-[#000000] text-[#f7f3ec] px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            <Save className="w-4 h-4" />
+            Save
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">

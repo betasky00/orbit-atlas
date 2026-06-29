@@ -17,16 +17,20 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TemplateCanvas } from "@/components/template/TemplateCanvas";
-import { allTemplates } from "@/lib/templateStore";
+import { fetchAllTemplates, type ServerTemplate } from "@/lib/templateStore";
 import { loadBrand, type BrandKit } from "@/lib/brandStore";
-import { saveItem, downscaleDataUrl } from "@/lib/libraryStore";
-import type { TemplateDef, TemplateContent } from "@/lib/templates";
+import { saveLibraryItem, downscaleDataUrl } from "@/lib/libraryStore";
+import type { TemplateContent } from "@/lib/templates";
+
+interface Account { id: string; platform: string; username: string }
 
 const PLATFORMS = ["instagram", "facebook", "tiktok"];
 
 export default function StudioPage() {
-  const [templates, setTemplates] = useState<TemplateDef[]>([]);
+  const [templates, setTemplates] = useState<ServerTemplate[]>([]);
   const [templateId, setTemplateId] = useState<string>("preset-news");
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [accountId, setAccountId] = useState<string>(""); // "" = shared
   const [topic, setTopic] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [niche, setNiche] = useState("");
@@ -52,7 +56,8 @@ export default function StudioPage() {
   const [bulkRunning, setBulkRunning] = useState(false);
 
   useEffect(() => {
-    setTemplates(allTemplates());
+    fetchAllTemplates().then(setTemplates);
+    fetch("/api/analytics").then((r) => (r.ok ? r.json() : [])).then((d) => setAccounts(Array.isArray(d) ? d : []));
     const b = loadBrand();
     setBrand(b);
     if (b.businessName) setBusinessName(b.businessName);
@@ -207,14 +212,13 @@ export default function StudioPage() {
     if (!template) return;
     setStatus(null);
     const slimImage = content.image ? await downscaleDataUrl(content.image, 1080) : undefined;
-    saveItem({
-      id: `lib-${Date.now()}`,
-      createdAt: Date.now(),
+    await saveLibraryItem({
       name: content.headline || topic.slice(0, 40) || "Untitled post",
       caption,
       hashtags,
       firstComment,
       platform,
+      socialAccountId: accountId || null,
       template: {
         width: template.width,
         height: template.height,
@@ -222,7 +226,6 @@ export default function StudioPage() {
         zones: template.zones,
       },
       content: { ...content, ...(slimImage ? { image: slimImage } : {}) },
-      status: "draft",
     });
     setStatus("Saved to library ✓");
   };
@@ -262,14 +265,13 @@ export default function StudioPage() {
         });
         const data = await res.json();
         if (data.error) continue;
-        saveItem({
-          id: `lib-${Date.now()}-${saved}`,
-          createdAt: Date.now() + saved,
+        await saveLibraryItem({
           name: data.headline || line.slice(0, 40),
           caption: data.caption ?? "",
           hashtags: data.hashtags ?? [],
           firstComment: data.firstComment ?? "",
           platform,
+          socialAccountId: accountId || null,
           template: { width: template.width, height: template.height, background: template.background, zones: template.zones },
           content: {
             kicker: data.kicker ?? "",
@@ -278,7 +280,6 @@ export default function StudioPage() {
             brand: brand?.handle ?? "",
             ...(brand?.logo ? { logo: brand.logo } : {}),
           },
-          status: "draft",
         });
         saved++;
       } catch {
@@ -367,6 +368,17 @@ export default function StudioPage() {
                 <option key={p} value={p} className="bg-[#f4f1ea]">
                   {p[0].toUpperCase() + p.slice(1)}
                 </option>
+              ))}
+            </select>
+            <select
+              value={accountId}
+              onChange={(e) => setAccountId(e.target.value)}
+              title="Which account this post is for (controls who on your team sees it)"
+              className="col-span-2 bg-[#efeae1] border border-[#d4ccbd] rounded-lg px-3 py-2 text-sm text-[#1c1a17] outline-none focus:border-[#1c1a17]/50"
+            >
+              <option value="">For: Shared (whole team)</option>
+              {accounts.map((a) => (
+                <option key={a.id} value={a.id}>For: @{a.username}</option>
               ))}
             </select>
           </div>
