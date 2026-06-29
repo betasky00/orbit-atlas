@@ -9,10 +9,12 @@ export async function GET(req: NextRequest) {
   const state = searchParams.get("state"); // userId
   const error = searchParams.get("error");
 
+  const base = process.env.NEXTAUTH_URL ?? new URL(req.url).origin;
+  const fail = (reason: string) =>
+    NextResponse.redirect(`${base}/accounts?error=${encodeURIComponent(reason)}`);
+
   if (error || !code || !state) {
-    return NextResponse.redirect(
-      `${process.env.NEXTAUTH_URL}/accounts?error=meta_auth_failed`
-    );
+    return fail(searchParams.get("error_description") || "meta_auth_cancelled");
   }
 
   // Exchange code for token
@@ -21,15 +23,15 @@ export async function GET(req: NextRequest) {
       new URLSearchParams({
         client_id: process.env.META_APP_ID!,
         client_secret: process.env.META_APP_SECRET!,
-        redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/meta/callback`,
+        redirect_uri: `${base}/api/auth/meta/callback`,
         code,
       })
   );
   const tokenData = await tokenRes.json();
   if (tokenData.error) {
-    return NextResponse.redirect(
-      `${process.env.NEXTAUTH_URL}/accounts?error=meta_token_failed`
-    );
+    // Surface the real Meta reason so we can fix it (bad secret, redirect
+    // mismatch, etc.) instead of a generic code.
+    return fail(`Meta: ${tokenData.error.message ?? "token exchange failed"}`);
   }
 
   // Get long-lived token
@@ -49,6 +51,12 @@ export async function GET(req: NextRequest) {
   try {
     await ensureOwner();
     const pages = await getUserPages(accessToken);
+
+    if (!pages || pages.length === 0) {
+      return fail(
+        "No Facebook Page found. Your Instagram must be a Business/Creator account linked to a Facebook Page you admin."
+      );
+    }
 
     // Find the user's first business or create a default one
     let business = await db.business.findFirst({
@@ -110,12 +118,8 @@ export async function GET(req: NextRequest) {
     }
   } catch (err) {
     console.error("Meta callback error:", err);
-    return NextResponse.redirect(
-      `${process.env.NEXTAUTH_URL}/accounts?error=meta_save_failed`
-    );
+    return fail(`Save failed: ${err instanceof Error ? err.message : "unknown error"}`);
   }
 
-  return NextResponse.redirect(
-    `${process.env.NEXTAUTH_URL}/accounts?success=meta_connected`
-  );
+  return NextResponse.redirect(`${base}/accounts?success=meta_connected`);
 }
