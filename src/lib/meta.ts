@@ -2,6 +2,51 @@
 
 const META_GRAPH_BASE = "https://graph.facebook.com/v19.0";
 
+export interface AccountStats {
+  followers: number;
+  mediaCount: number;
+  reach?: number | null;
+}
+
+// Live Instagram Business account stats.
+export async function getInstagramStats(
+  igId: string,
+  token: string
+): Promise<AccountStats> {
+  const res = await fetch(
+    `${META_GRAPH_BASE}/${igId}?fields=followers_count,media_count&access_token=${token}`
+  );
+  const d = await res.json();
+  if (d.error) throw new Error(d.error.message);
+
+  // Reach over the last 30 days — best-effort, tolerate API changes.
+  let reach: number | null = null;
+  try {
+    const r = await fetch(
+      `${META_GRAPH_BASE}/${igId}/insights?metric=reach&period=days_28&access_token=${token}`
+    );
+    const rd = await r.json();
+    reach = rd?.data?.[0]?.values?.[0]?.value ?? null;
+  } catch {
+    reach = null;
+  }
+
+  return { followers: d.followers_count ?? 0, mediaCount: d.media_count ?? 0, reach };
+}
+
+// Live Facebook Page stats.
+export async function getFacebookStats(
+  pageId: string,
+  token: string
+): Promise<AccountStats> {
+  const res = await fetch(
+    `${META_GRAPH_BASE}/${pageId}?fields=followers_count,fan_count&access_token=${token}`
+  );
+  const d = await res.json();
+  if (d.error) throw new Error(d.error.message);
+  return { followers: d.followers_count ?? d.fan_count ?? 0, mediaCount: 0, reach: null };
+}
+
 export interface MetaPage {
   id: string;
   name: string;

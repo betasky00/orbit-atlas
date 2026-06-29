@@ -47,7 +47,8 @@ function ZoneEl({
   };
 
   if (zone.type === "image" || zone.type === "logo") {
-    const src = content[zone.key ?? "image"];
+    // A baked-in zone.src (e.g. a logo) always wins over dynamic content.
+    const src = zone.src ?? content[zone.key ?? "image"];
     if (!isUrl(src)) {
       return (
         <div

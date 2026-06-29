@@ -41,6 +41,9 @@ export interface Zone {
   opacity?: number;
   radius?: number;
   objectFit?: "cover" | "contain";
+  /** baked-in image for a STATIC image/logo zone (e.g. your brand logo).
+   *  When set, it always renders this instead of content[key]. */
+  src?: string;
 }
 
 export interface TemplateRules {

@@ -10,11 +10,13 @@ interface Account {
   platform: string;
   username: string;
   displayName?: string | null;
+  followers?: number | null;
 }
-interface Business {
-  id: string;
-  name: string;
-  socialAccounts: Account[];
+
+function fmt(n: number | null | undefined) {
+  if (n == null) return "—";
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
+  return String(n);
 }
 
 function PlatformGlyph({ platform }: { platform: string }) {
@@ -30,17 +32,17 @@ const QUICK = [
 ];
 
 export default function DashboardPage() {
-  const [businesses, setBusinesses] = useState<Business[] | null>(null);
+  const [accounts, setAccounts] = useState<Account[] | null>(null);
 
   useEffect(() => {
-    fetch("/api/businesses")
+    fetch("/api/analytics")
       .then((r) => (r.ok ? r.json() : []))
-      .then((d) => setBusinesses(Array.isArray(d) ? d : []))
-      .catch(() => setBusinesses([]));
+      .then((d) => setAccounts(Array.isArray(d) ? d : []))
+      .catch(() => setAccounts([]));
   }, []);
 
-  const accounts = businesses?.flatMap((b) => b.socialAccounts ?? []) ?? [];
-  const loading = businesses === null;
+  const loading = accounts === null;
+  const list = accounts ?? [];
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8">
@@ -86,7 +88,7 @@ export default function DashboardPage() {
           <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-6 text-sm text-[#857f74]">
             Loading…
           </div>
-        ) : accounts.length === 0 ? (
+        ) : list.length === 0 ? (
           <div className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-10 flex flex-col items-center text-center">
             <div className="w-11 h-11 rounded-full bg-[#efeae1] border border-[#dbd4c7] flex items-center justify-center mb-3">
               <Users className="w-5 h-5 text-[#857f74]" />
@@ -106,7 +108,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {accounts.map((a) => (
+            {list.map((a) => (
               <div
                 key={a.id}
                 className="bg-[#f4f1ea] border border-[#dbd4c7] rounded-xl p-5 flex items-center gap-3"
@@ -114,13 +116,17 @@ export default function DashboardPage() {
                 <div className="w-9 h-9 rounded-md bg-[#efeae1] border border-[#dbd4c7] flex items-center justify-center">
                   <PlatformGlyph platform={a.platform} />
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-[#1c1a17] truncate">
                     {a.displayName || a.username}
                   </p>
                   <p className="text-xs text-[#857f74] capitalize">
                     {a.platform} · @{a.username}
                   </p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-base font-semibold text-[#1c1a17]">{fmt(a.followers)}</p>
+                  <p className="text-xs text-[#857f74]">followers</p>
                 </div>
               </div>
             ))}

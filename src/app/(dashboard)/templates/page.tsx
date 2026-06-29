@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Loader2, Upload, Sparkles, Trash2, Plus, LayoutTemplate, Check } from "lucide-react";
+import Link from "next/link";
+import { Loader2, Upload, Sparkles, Trash2, Plus, LayoutTemplate, Check, Pencil } from "lucide-react";
 import { TemplateCanvas } from "@/components/template/TemplateCanvas";
 import {
   allTemplates,
@@ -87,12 +88,19 @@ export default function TemplatesPage() {
     <div className="p-8 max-w-6xl mx-auto space-y-8">
       <div className="flex items-center gap-2">
         <LayoutTemplate className="w-5 h-5 text-[#1c1a17]" />
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-semibold text-[#1c1a17]">Templates</h1>
           <p className="text-[#6b655b] text-sm mt-0.5">
-            Upload an example post and AI learns its layout + rules — then reuse it forever.
+            Upload an example for AI to learn, or build one from scratch in the editor.
           </p>
         </div>
+        <Link
+          href="/templates/editor"
+          className="flex items-center gap-2 bg-[#1c1a17] hover:bg-[#000000] text-[#f7f3ec] px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          New template
+        </Link>
       </div>
 
       {/* Upload / analyze */}
@@ -192,19 +200,28 @@ export default function TemplatesPage() {
                   />
                 </div>
               </div>
-              <div className="px-3 py-2.5 flex items-center justify-between">
+              <div className="px-3 py-2.5 flex items-center justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-sm text-[#1c1a17] truncate">{t.name}</p>
                   <p className="text-xs text-[#857f74]">{t.preset ? "Preset" : t.postType ?? "Custom"}</p>
                 </div>
-                {userIds.has(t.id) && (
-                  <button
-                    onClick={() => remove(t.id)}
-                    className="text-[#a39c8d] hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Link
+                    href={`/templates/editor?id=${t.id}`}
+                    className="text-[#857f74] hover:text-[#1c1a17] transition-colors"
+                    title={t.preset ? "Edit a copy" : "Edit"}
                   >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
+                    <Pencil className="w-4 h-4" />
+                  </Link>
+                  {userIds.has(t.id) && (
+                    <button
+                      onClick={() => remove(t.id)}
+                      className="text-[#a39c8d] hover:text-red-600 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}
