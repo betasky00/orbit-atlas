@@ -61,68 +61,84 @@ function meanAbsDiff(a: Float32Array, b: Float32Array): number {
   return s / a.length / 255; // 0..1
 }
 
-// Detect cut timestamps by diffing every actually-rendered frame.
+// Detect cuts in two passes:
+//  1. measure the frame-to-frame difference of EVERY rendered frame (at 1x, so
+//     nothing is skipped — even 0.1s swaps are seen).
+//  2. find "spikes" in that signal. Continuous motion gives a smooth, low signal;
+//     a hard swap/cut gives a sharp spike. We cut on spikes, not on motion — so a
+//     panning video doesn't get chopped, but a product swap does.
 async function detectCuts(
   video: HTMLVideoElement,
-  threshold: number,
+  sensitivity: number, // 0..1, higher = more cuts
   onProgress: (p: number) => void
 ): Promise<number[]> {
-  const W = 64;
-  const H = Math.max(16, Math.round((64 * video.videoHeight) / video.videoWidth));
+  const W = 96;
+  const H = Math.max(16, Math.round((W * video.videoHeight) / video.videoWidth));
   const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
   const duration = video.duration;
-  const minShot = 0.12; // ignore cuts closer than this
-  const cuts: number[] = [0];
+
+  const series: { t: number; d: number }[] = [];
   let prev: Float32Array | null = null;
+  const sample = (t: number) => {
+    ctx.drawImage(video, 0, 0, W, H);
+    const sig = signature(ctx, W, H);
+    if (prev) series.push({ t, d: meanAbsDiff(sig, prev) });
+    prev = sig;
+  };
 
   const rvfc = video as HTMLVideoElement & {
     requestVideoFrameCallback?: (cb: (now: number, meta: { mediaTime: number }) => void) => number;
   };
 
   if (typeof rvfc.requestVideoFrameCallback === "function") {
-    // Fast path: play (sped up, muted) and inspect every painted frame.
     video.muted = true;
-    video.playbackRate = 2;
+    video.playbackRate = 1; // 1x so no frames are dropped
     await video.play().catch(() => {});
     await new Promise<void>((resolve) => {
       const onFrame = (_now: number, meta: { mediaTime: number }) => {
-        ctx.drawImage(video, 0, 0, W, H);
-        const sig = signature(ctx, W, H);
-        if (prev) {
-          const d = meanAbsDiff(sig, prev);
-          if (d > threshold && meta.mediaTime - cuts[cuts.length - 1] > minShot) {
-            cuts.push(meta.mediaTime);
-          }
-        }
-        prev = sig;
-        onProgress(Math.min(0.99, meta.mediaTime / duration));
-        if (video.ended || video.currentTime >= duration - 0.05) return resolve();
+        sample(meta.mediaTime);
+        onProgress(Math.min(0.95, meta.mediaTime / duration));
+        if (video.ended || video.currentTime >= duration - 0.04) return resolve();
         rvfc.requestVideoFrameCallback!(onFrame);
       };
       rvfc.requestVideoFrameCallback!(onFrame);
       video.onended = () => resolve();
     });
     video.pause();
-    video.playbackRate = 1;
   } else {
-    // Fallback: seek at a fine interval.
-    const step = Math.max(0.05, Math.min(0.1, duration / 400));
+    const step = Math.max(0.033, Math.min(0.05, duration / 600));
     for (let t = 0; t < duration; t += step) {
       await seek(video, t);
-      ctx.drawImage(video, 0, 0, W, H);
-      const sig = signature(ctx, W, H);
-      if (prev) {
-        const d = meanAbsDiff(sig, prev);
-        if (d > threshold && t - cuts[cuts.length - 1] > minShot) cuts.push(t);
-      }
-      prev = sig;
-      onProgress(Math.min(0.99, t / duration));
+      sample(t);
+      onProgress(Math.min(0.95, t / duration));
     }
   }
 
+  if (series.length === 0) return [0, duration];
+
+  // Adaptive spike detection.
+  const vals = series.map((s) => s.d);
+  const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+  const std = Math.sqrt(vals.reduce((a, b) => a + (b - mean) ** 2, 0) / vals.length);
+  // higher sensitivity -> lower k -> more cuts
+  const k = 3.2 - sensitivity * 2.4; // ~0.8 (very sensitive) .. 3.2 (strict)
+  const threshold = Math.max(mean + k * std, 0.012);
+  const minShot = 0.06;
+
+  const cuts: number[] = [0];
+  for (let i = 0; i < series.length; i++) {
+    const cur = series[i];
+    if (cur.d < threshold) continue;
+    // local maximum check (avoid marking a whole ramp)
+    const prevD = series[i - 1]?.d ?? 0;
+    const nextD = series[i + 1]?.d ?? 0;
+    if (cur.d >= prevD && cur.d >= nextD && cur.t - cuts[cuts.length - 1] > minShot) {
+      cuts.push(cur.t);
+    }
+  }
   cuts.push(duration);
   return cuts;
 }
@@ -196,7 +212,7 @@ export default function ReelsPage() {
   const [progress, setProgress] = useState(0);
   const [shots, setShots] = useState<Shot[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
-  const [sensitivity, setSensitivity] = useState(0.18);
+  const [sensitivity, setSensitivity] = useState(0.5);
   const [meta, setMeta] = useState<{ duration: number; w: number; h: number } | null>(null);
   const [vibe, setVibe] = useState<{ musicVibe?: string; pacing?: string; hook?: string; caption?: string; hashtags?: string[]; editingNotes?: string[] } | null>(null);
   const [soundtrack, setSoundtrack] = useState<"none" | "original" | "upload">("none");
@@ -337,41 +353,50 @@ export default function ReelsPage() {
     setProgress(0);
     setError(null);
     try {
-      // Output sized to the source aspect, capped to 1080 wide.
-      const outW = Math.min(1080, meta.w);
-      const outH = Math.round((outW * meta.h) / meta.w);
+      // Keep the SOURCE resolution (cap the long edge at 1920 to stay safe).
+      let outW = meta.w;
+      let outH = meta.h;
+      const big = Math.max(outW, outH);
+      if (big > 1920) {
+        const sc = 1920 / big;
+        outW = Math.round(outW * sc);
+        outH = Math.round(outH * sc);
+      }
       const canvas = document.createElement("canvas");
       canvas.width = outW;
       canvas.height = outH;
       const ctx = canvas.getContext("2d")!;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
 
-      // Preload every shot's asset (or fall back to its original thumbnail).
-      const prepared = await Promise.all(
-        shots.map(async (s) => {
-          let el: HTMLImageElement | HTMLVideoElement;
-          let kind: "image" | "video";
-          if (s.asset && s.assetType === "video") {
-            el = await loadVideoEl(s.asset);
-            kind = "video";
-          } else if (s.asset) {
-            el = await loadImage(s.asset);
-            kind = "image";
-          } else {
-            el = await loadImage(s.thumb);
-            kind = "image";
-          }
-          return { shot: s, el, kind };
-        })
-      );
+      // A full-res copy of the ORIGINAL video for any shot you didn't replace —
+      // so un-replaced shots keep the original footage at full quality, not a thumbnail.
+      let origVideo: HTMLVideoElement | null = null;
+      if (originalSrc.current) {
+        origVideo = document.createElement("video");
+        origVideo.src = originalSrc.current;
+        origVideo.muted = true;
+        origVideo.playsInline = true;
+        await new Promise((r) => {
+          origVideo!.onloadeddata = () => r(null);
+          origVideo!.onerror = () => r(null);
+        });
+      }
+
+      // Preload replacement assets at full quality.
+      const assetEls = new Map<string, HTMLImageElement | HTMLVideoElement>();
+      for (const s of shots) {
+        if (s.asset && s.assetType === "video") assetEls.set(s.id, await loadVideoEl(s.asset));
+        else if (s.asset) assetEls.set(s.id, await loadImage(s.asset));
+      }
 
       const stream = canvas.captureStream(30);
 
-      // Optional soundtrack track.
+      // Optional soundtrack.
       let audioEl: HTMLMediaElement | null = null;
       if (soundtrack === "original" && originalSrc.current) {
         const v = document.createElement("video");
         v.src = originalSrc.current;
-        v.crossOrigin = "anonymous";
         await new Promise((r) => (v.onloadeddata = r));
         audioEl = v;
       } else if (soundtrack === "upload" && uploadedAudio.current) {
@@ -396,7 +421,12 @@ export default function ReelsPage() {
       }
 
       const { mime, ext } = pickMime();
-      const recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      // High bitrate so the output isn't pixelated (~0.15 bits/pixel/frame).
+      const bitrate = Math.min(Math.round(outW * outH * 30 * 0.15), 24_000_000);
+      const recorder = new MediaRecorder(stream, {
+        ...(mime ? { mimeType: mime } : {}),
+        videoBitsPerSecond: bitrate,
+      });
       const chunks: BlobPart[] = [];
       recorder.ondataavailable = (ev) => ev.data.size && chunks.push(ev.data);
       const done = new Promise<Blob>((resolve) => {
@@ -404,48 +434,60 @@ export default function ReelsPage() {
       });
       recorder.start();
 
-      const total = prepared.reduce((s, p) => s + p.shot.duration, 0);
+      const total = shots.reduce((s, x) => s + x.duration, 0);
       let elapsedTotal = 0;
 
-      for (const p of prepared) {
-        if (p.kind === "video") {
-          const v = p.el as HTMLVideoElement;
-          v.currentTime = 0;
-          await v.play().catch(() => {});
-        }
-        await new Promise<void>((resolve) => {
+      const drawFor = (el: CanvasImageSource | null, text: string | undefined, durMs: number) =>
+        new Promise<void>((resolve) => {
           const start = performance.now();
-          const durMs = p.shot.duration * 1000;
           const tick = () => {
             const e = performance.now() - start;
             ctx.fillStyle = "#000";
             ctx.fillRect(0, 0, outW, outH);
-            const el = p.el;
-            const sw = (el as HTMLVideoElement).videoWidth || (el as HTMLImageElement).naturalWidth || outW;
-            const sh = (el as HTMLVideoElement).videoHeight || (el as HTMLImageElement).naturalHeight || outH;
-            try { drawCover(ctx, el, sw, sh, outW, outH); } catch { /* frame not ready */ }
-            const overlay = p.shot.text;
-            if (overlay) {
+            if (el) {
+              const v = el as HTMLVideoElement;
+              const im = el as unknown as HTMLImageElement;
+              const sw = v.videoWidth || im.naturalWidth || outW;
+              const sh = v.videoHeight || im.naturalHeight || outH;
+              try { drawCover(ctx, el, sw, sh, outW, outH); } catch { /* frame not ready */ }
+            }
+            if (text) {
               ctx.font = `bold ${Math.round(outW * 0.06)}px -apple-system, sans-serif`;
               ctx.textAlign = "center";
               ctx.lineWidth = Math.round(outW * 0.012);
               ctx.strokeStyle = "rgba(0,0,0,0.6)";
               ctx.fillStyle = "#fff";
               const y = outH * 0.85;
-              ctx.strokeText(overlay, outW / 2, y);
-              ctx.fillText(overlay, outW / 2, y);
+              ctx.strokeText(text, outW / 2, y);
+              ctx.fillText(text, outW / 2, y);
             }
             setProgress(Math.min(0.99, (elapsedTotal + e) / 1000 / total));
-            if (e >= durMs) {
-              if (p.kind === "video") (p.el as HTMLVideoElement).pause();
-              elapsedTotal += durMs;
-              resolve();
-              return;
-            }
+            if (e >= durMs) { elapsedTotal += durMs; resolve(); return; }
             requestAnimationFrame(tick);
           };
           requestAnimationFrame(tick);
         });
+
+      for (const s of shots) {
+        const asset = assetEls.get(s.id);
+        const durMs = s.duration * 1000;
+        if (asset && asset.tagName === "VIDEO") {
+          const v = asset as HTMLVideoElement;
+          v.currentTime = 0;
+          await v.play().catch(() => {});
+          await drawFor(v, s.text, durMs);
+          v.pause();
+        } else if (asset) {
+          await drawFor(asset, s.text, durMs);
+        } else if (origVideo) {
+          // un-replaced → play the original segment at full resolution
+          await seek(origVideo, s.start);
+          await origVideo.play().catch(() => {});
+          await drawFor(origVideo, s.text, durMs);
+          origVideo.pause();
+        } else {
+          await drawFor(null, s.text, durMs);
+        }
       }
 
       recorder.stop();
@@ -497,14 +539,14 @@ export default function ReelsPage() {
             <Scissors className="w-3.5 h-3.5" />
             Cut sensitivity
             <input
-              type="range" min={0.08} max={0.4} step={0.01}
+              type="range" min={0} max={1} step={0.05}
               value={sensitivity}
               onChange={(e) => setSensitivity(Number(e.target.value))}
               className="w-28"
             />
-            <span className="w-8">{sensitivity.toFixed(2)}</span>
+            <span className="w-8">{Math.round(sensitivity * 100)}%</span>
           </label>
-          <span className="text-xs text-[#a39c8d]">lower = detects finer cuts</span>
+          <span className="text-xs text-[#a39c8d]">higher = catches more/subtler cuts. Re-upload to re-detect.</span>
         </div>
         {error && <p className="text-xs text-red-600">{error}</p>}
         {shots.length > 0 && (
