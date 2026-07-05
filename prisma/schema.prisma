@@ -90,6 +90,8 @@ model Business {
   socialAccounts SocialAccount[]
   posts          Post[]
   templates      Template[]
+  carouselTemplates CarouselTemplate[]
+  carouselWorkflows CarouselWorkflow[]
 }
 
 model SocialAccount {
@@ -109,6 +111,7 @@ model SocialAccount {
   business Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
   posts    PostAccount[]
   access   AccountAccess[]
+  carouselWorkflows CarouselWorkflow[]
 
   @@unique([platform, accountId])
 }
@@ -192,4 +195,83 @@ model PostAccount {
   socialAccount SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
 
   @@unique([postId, socialAccountId])
+}
+
+
+// ============================================================
+// Instagram Carousel Workflow (AI-assisted, Figma-rendered)
+// ============================================================
+
+// A reusable carousel template: a set of ordered slide templates
+// whose visual source of truth lives in a Figma file (see figma-plugin/).
+model CarouselTemplate {
+  id String @id @default(cuid())
+  businessId String? // null = shared with whole workspace
+  name String
+  editorialStyle String? // "Educatif" | "Storytelling" | "Data" | "Conseil"
+  description String?
+  previewUrl String? // preview screenshot stored on Vercel Blob
+  figmaFileKey String? // Figma file key to duplicate via the Figma REST API
+  slideCount Int @default(0)
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  business Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  slides SlideTemplate[]
+  workflows CarouselWorkflow[]
+}
+
+// One slide within a CarouselTemplate. `figmaFrameName` must match the
+// Figma frame name exactly so the Figma plugin can find it. `slots` is a
+// JSON array of { name, kind: "text" | "image", maxChars?, instruction? }
+// and each slot name must match a Figma layer named SLOT_<name>.
+model SlideTemplate {
+  id String @id @default(cuid())
+  templateId String
+  index Int
+  type String? // "hook" | "context" | "data" | "conclusion" ...
+  figmaFrameName String
+  slots String @default("[]") // JSON array of slot definitions
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  template CarouselTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, index])
+}
+
+// A single run of the 12-node carousel workflow, from the initial prompt
+// to the scheduled Instagram publication. `status` drives which node/HITL
+// step is currently active.
+model CarouselWorkflow {
+  id String @id @default(cuid())
+  businessId String
+  templateId String
+  createdById String?
+  socialAccountId String?
+
+  status String @default("SCRAPING")
+  // SCRAPING | AWAITING_SOURCES | STRUCTURING | AWAITING_OUTLINE |
+  // AWAITING_IMAGES | RENDERING | AWAITING_FIGMA_EDIT | EXPORTING |
+  // AWAITING_PUBLISH | SCHEDULED | PUBLISHED | FAILED
+
+  prompt String // consigne utilisateur, ex: "Fais un carrousel sur l'eruption du Vesuve"
+  config String @default("{}") // JSON: tone, langue, sourceTypes, maxSourceAgeMonths, excludedDomains
+  sources String? // JSON: sources proposees puis validees (titre, url, resume, date, domaine, score)
+  outline String? // JSON: { slides: [{ index, type, slots: {...} }] }
+  images String? // JSON: par slide, { imageUrl, imageCredit }
+  figmaFileKey String? // fichier Figma duplique pour cette publication
+  figmaFileUrl String?
+  renderedUrls String? // JSON: tableau d'URLs PNG (Vercel Blob) apres export
+  caption String?
+  hashtags String?
+  scheduledAt DateTime?
+  errorMessage String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  template CarouselTemplate @relation(fields: [templateId], references: [id])
+  socialAccount SocialAccount? @relation(fields: [socialAccountId], references: [id], onDelete: SetNull)
 }
