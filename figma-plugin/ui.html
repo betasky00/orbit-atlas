@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+          font-family: -apple-system, Inter, sans-serif;
+          margin: 0;
+          padding: 16px;
+          color: #1A1A1A;
+      }
+      h2 {
+          font-size: 14px;
+          margin: 0 0 12px 0;
+      }
+      label {
+          display: block;
+          font-size: 12px;
+          color: #666;
+          margin-bottom: 4px;
+      }
+      input {
+          width: 100%;
+          box-sizing: border-box;
+          padding: 8px;
+          border: 1px solid #ddd;
+          border-radius: 6px;
+          font-size: 12px;
+          margin-bottom: 12px;
+      }
+      button {
+          width: 100%;
+          padding: 10px;
+          border: none;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          margin-bottom: 8px;
+      }
+      .primary {
+          background: #1A1A1A;
+          color: white;
+      }
+      .secondary {
+          background: #F0F0F0;
+          color: #1A1A1A;
+      }
+      #status {
+          font-size: 11px;
+          color: #888;
+          margin-top: 8px;
+          min-height: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Orbit Atlas Sync</h2>
+
+    <label for="workflowId">Workflow ID</label>
+      <input type="text" id="workflowId" placeholder="e.g. cku8x7f3a0001..." />
+
+    <button class="secondary" id="loadBtn">Load content into this file</button>
+    <button class="primary" id="validateBtn">Validate and export</button>
+    <div id="status"></div>
+    <script>
+      const workflowInput = document.getElementById("workflowId");
+      const loadBtn = document.getElementById("loadBtn");
+      const validateBtn = document.getElementById("validateBtn");
+      const status = document.getElementById("status");
+
+      function setStatus(text) {
+          status.textContent = text;
+      }
+
+      loadBtn.onclick = () => {
+          const workflowId = workflowInput.value.trim();
+          if (!workflowId) {
+                setStatus("Please enter a workflow ID.");
+                return;
+          }
+          setStatus("Loading...");
+          parent.postMessage(
+            { pluginMessage: { type: "load-workflow", workflowId } },
+                "*"
+              );
+      };
+
+      validateBtn.onclick = () => {
+          const workflowId = workflowInput.value.trim();
+          if (!workflowId) {
+                setStatus("Please enter a workflow ID.");
+                return;
+          }
+          setStatus("Exporting and validating...");
+          parent.postMessage(
+            { pluginMessage: { type: "validate", workflowId } },
+                "*"
+              );
+      };
+
+      window.onmessage = (event) => {
+          const msg = event.data.pluginMessage;
+          if (!msg) return;
+
+          if (msg.type === "loaded") {
+                setStatus("Content loaded successfully.");
+          }
+          if (msg.type === "validated") {
+                setStatus("Validated. You can close this file.");
+          }
+          if (msg.type === "error") {
+                setStatus("Error: " + msg.message);
+          }
+      };
+    </script>
+  </body>
+</html>
