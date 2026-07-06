@@ -7,7 +7,7 @@
 // Text layer : "SLOT_<NAME>" (e.g. SLOT_TITRE_ACCROCHE)
 // Image layer : "SLOT_IMAGE_<index>" (e.g. SLOT_IMAGE_1) - must be a shape with a fill
 
-const ORBIT_API_BASE = "https://YOUR-APP-DOMAIN.vercel.app";
+const ORBIT_API_BASE = "https://dashboards-alpha-beige.vercel.app";
 
 figma.showUI(__html__, { width: 360, height: 420 });
 
